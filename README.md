@@ -6,6 +6,8 @@ CO3011 · Nhóm 5 · Baseline tài liệu ngày **02/11/2026**.
 
 ## Chạy và thử ngay
 
+[Hướng dẫn Docker đầy đủ: lần đầu, chạy lại, dừng, dựng môi trường sạch mà giữ image/dữ liệu cũ](GUIDE/DOCKER.md) · [Danh mục GUIDE và tips](GUIDE/README.md).
+
 Mở Docker Desktop (Linux containers), tại repo chạy:
 
 ```powershell
