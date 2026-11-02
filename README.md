@@ -2,7 +2,58 @@
 
 CO3011 · Nhóm 5 · Baseline tài liệu ngày **02/11/2026**.
 
-**Trạng thái:** đã phân tích và thiết kế; chưa triển khai ứng dụng, Dockerfile, Compose hay migration thực thi. `Backend/` và `Frontend/` giữ nguyên ranh giới triển khai.
+**Trạng thái:** đã triển khai MVP local, chạy bằng Docker Compose. `Backend/` và `Frontend/` giữ nguyên ranh giới. [Trạng thái thực hiện](docs/IMPLEMENTATION-STATUS.md) · [Quyết định/giới hạn thực tế](ADR/0008-mvp-local-va-quyet-dinh-trien-khai.md).
+
+## Chạy và thử ngay
+
+Mở Docker Desktop (Linux containers), tại repo chạy:
+
+```powershell
+docker compose up -d --build
+```
+
+Mở **[http://localhost:3000](http://localhost:3000)**. Compose chờ DB, tự áp dụng migration và seed30 bàn/20 món/5 tài khoản. Không cần SDK10 hoặc npm host.
+
+| Username | Vai trò | Password local mặc định |
+|---|---|---|
+| admin | Admin, có quyền nghiệp vụ quản lý | RestaurantDemo!2026 |
+| manager | Quản lý | RestaurantDemo!2026 |
+| waiter | Phục vụ | RestaurantDemo!2026 |
+| kitchen | Bếp | RestaurantDemo!2026 |
+| cashier | Thu ngân | RestaurantDemo!2026 |
+
+Có thể copy `.env.example` thành `.env` trước seed đầu để đổi cấu hình. Seed chạy lại **không reset** tài khoản/giá/món đã sửa. Gateway chỉ bind127.0.0.1, DB không publish host port; đây là cấu hình demo local.
+
+1. Admin/waiter mở bàn, ghi mã tham gia8 chữ số. Admin bấm **Link QR** trên bàn để cấp link `/qr/{token}`.
+2. Mở link trong cửa sổ ẩn danh, nhập mã để vào vai khách. Không cần camera hay điện thoại.
+3. Gửi món lần đầu → bếp; gọi thêm → chờ duyệt. Kitchen/manager/admin duyệt. Manager/admin được tự duyệt.
+4. KDS: Tiếp nhận → Bắt đầu nấu → Hoàn thành. Phục vụ: xác nhận Đã phục vụ.
+5. Chi tiết đơn: Yêu cầu thanh toán → cashier xác nhận tiền mặt/chuyển khoản → receipt, đóng lượt, bàn trống.
+6. Takeaway từ nút Đơn mang về, không bàn; chế biến/bàn giao trước thu tiền. Món đã nấu hủy ngoại lệ cần manager/admin và lý do; toàn món hủy có thể đóng sổ ZERO tổng0.
+
+Các tab thường cùng profile chia sẻ cookie; muốn nhiều tài khoản staff đồng thời dùng profile/browser/ẩn danh riêng. F12 → **Ctrl+Shift+M** để xem mobile/tablet bằng Device Toolbar ngay trên localhost.
+
+## API và kiểm thử
+
+- [53 tài liệu API — mỗi endpoint một Markdown](docs/api/README.md).
+- [Hướng dẫn Postman, cookie/CSRF/version và các luồng mẫu](docs/api/POSTMAN.md).
+- [Import Postman collection](docs/api/restaurant.postman_collection.json).
+- [OpenAPI đang chạy](http://localhost:3000/api/v1/openapi.json).
+
+```powershell
+docker build --target tests -t restaurant-ordering-tests ./Backend
+python scripts/smoke.py
+```
+
+Unit test chạy trong Docker. Smoke dùng Python standard library, không cần pip; tạo dữ liệu demo có thanh toán/hủy, không xóa dữ liệu. [Kết quả HTTP thực tế](docs/verification/smoke-result.json). Để chạy smoke hoàn toàn trong container:
+
+```powershell
+docker run --rm --network restaurant_ordering_default -e BASE_URL=http://gateway -v "${PWD}:/workspace" -w /workspace python:3.12-alpine python scripts/smoke.py
+```
+
+Sinh lại docs/collection/OpenAPI khi đổi route: `python scripts/generate_api_docs.py`. Script kiểm catalog khớp53 route thực. Dừng bằng `docker compose stop`, khởi động lại `docker compose start`, cập nhật code bằng `docker compose up -d --build`. Named volumes giữ DB/keyring; không dùng `down -v` nếu muốn giữ dữ liệu.
+
+Backend thực tế: `Restaurant.Api/{Domain,Data,Services}` + `Restaurant.Tests`. Frontend: Next app routes, component UI chung và API helper. Chưa benchmark50 thiết bị/UAT5 người/restore drill; xem ADR-0008 trước khi triển khai ngoài localhost.
 
 ## Bắt đầu đọc
 

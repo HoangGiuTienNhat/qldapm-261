@@ -1,0 +1,2521 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Restaurant Ordering API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "summary": "Kiểm tra tiến trình",
+        "description": "Công khai; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Kiểm tra kết nối database",
+        "description": "Công khai; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "ready"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/csrf": {
+      "get": {
+        "summary": "Lấy CSRF token",
+        "description": "Công khai; Cookie CSRF được lưu trong cookie jar. Lấy token mới sau khi đăng nhập/đăng xuất hoặc đổi principal. Không dùng chuỗi minh họa làm token thật.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "<token do server trả về>"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/openapi.json": {
+      "get": {
+        "summary": "Hợp đồng OpenAPI",
+        "description": "Công khai; File sinh từ catalog test và được đối chiếu route thực. Không chứa secret runtime.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "openapi": "3.0.3",
+                  "info": {
+                    "title": "Restaurant Ordering API",
+                    "version": "1.0.0"
+                  },
+                  "paths": {}
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Đăng nhập nhân viên",
+        "description": "Công khai; Seed local có admin, manager, waiter, kitchen, cashier cùng mật khẩu DEMO_PASSWORD. Cookie ros_staff là HttpOnly; Postman giữ tự động. Mật khẩu ví dụ chỉ dành cho môi trường demo localhost.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "10000000-0000-0000-0000-000000000005",
+                  "username": "admin",
+                  "displayName": "Quản trị hệ thống",
+                  "roles": [
+                    "ADMIN"
+                  ],
+                  "isActive": true,
+                  "mustChangePassword": false,
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "username": "admin",
+                "password": "RestaurantDemo!2026"
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Đọc phiên hiện tại",
+        "description": "Nhân viên hoặc khách đúng phiên; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "10000000-0000-0000-0000-000000000005",
+                  "displayName": "Quản trị hệ thống",
+                  "roles": [
+                    "ADMIN"
+                  ],
+                  "isGuest": false,
+                  "visitId": null,
+                  "mustChangePassword": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "Đăng xuất",
+        "description": "Phiên hiện tại; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {},
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "summary": "Đổi mật khẩu",
+        "description": "Nhân viên; Thu hồi các phiên cũ và cấp lại cookie phiên hiện tại. Mật khẩu mới 12–128 ký tự. Đừng gửi ví dụ này nếu muốn giữ nguyên password demo.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "currentPassword": "RestaurantDemo!2026",
+                "newPassword": "BepNhaNewPass!2026"
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff": {
+      "get": {
+        "summary": "Danh sách nhân viên",
+        "description": "ADMIN; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "username": "waiter",
+                      "displayName": "Nhân viên phục vụ",
+                      "roles": [
+                        "WAITER"
+                      ],
+                      "isActive": true,
+                      "mustChangePassword": false,
+                      "version": 1
+                    }
+                  ],
+                  "nextCursor": null
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "Tạo nhân viên",
+        "description": "ADMIN; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<id mới>",
+                  "username": "phucvu02",
+                  "displayName": "Nguyễn Minh Anh",
+                  "roles": [
+                    "WAITER"
+                  ],
+                  "isActive": true,
+                  "mustChangePassword": true,
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "username": "phucvu02",
+                "displayName": "Nguyễn Minh Anh",
+                "initialPassword": "MinhAnhDemo!2026",
+                "roles": [
+                  "WAITER"
+                ]
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/{id}": {
+      "patch": {
+        "summary": "Sửa/khóa nhân viên",
+        "description": "ADMIN; Không khóa admin active cuối cùng. Khóa/đổi quyền/reset thu hồi phiên. Ví dụ response rút gọn, response thật còn username/displayName/roles/mustChangePassword.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<staffId>",
+                  "isActive": false,
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "displayName": "Nguyễn Minh Anh",
+                "active": false
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/{id}/roles": {
+      "put": {
+        "summary": "Thay bộ vai trò nhân viên",
+        "description": "ADMIN; roles là bộ đầy đủ thay thế, không phải chỉ các role bổ sung.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<staffId>",
+                  "roles": [
+                    "WAITER",
+                    "CASHIER"
+                  ],
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "roles": [
+                  "WAITER",
+                  "CASHIER"
+                ]
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/{id}/reset-password": {
+      "post": {
+        "summary": "Đặt mật khẩu tạm",
+        "description": "ADMIN; ",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<staffId>",
+                  "mustChangePassword": true,
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "temporaryPassword": "TemporaryPass!2026"
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu": {
+      "get": {
+        "summary": "Xem thực đơn",
+        "description": "Công khai; Query tùy chọn: categoryId=<UUID>, search=Cơm. Response chỉ danh mục/món active; món hết vẫn hiển thị. Món và danh mục còn createdAt/updatedAt trong response thật.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "categories": [
+                    {
+                      "id": "20000000-0000-0000-0000-000000000002",
+                      "name": "Món chính",
+                      "sortOrder": 1,
+                      "isActive": true,
+                      "version": 1
+                    }
+                  ],
+                  "items": [
+                    {
+                      "id": "30000000-0000-0000-0000-000000000006",
+                      "categoryId": "20000000-0000-0000-0000-000000000002",
+                      "code": "MON-006",
+                      "name": "Cơm chiên hải sản",
+                      "description": "Cơm chiên tơi với tôm, mực và rau củ.",
+                      "imageUrl": "/menu/placeholder.svg",
+                      "priceVnd": 95000,
+                      "isActive": true,
+                      "isAvailable": true,
+                      "version": 1
+                    }
+                  ],
+                  "serverTime": "2026-11-02T15:00:00Z"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/manage/menu-items": {
+      "get": {
+        "summary": "Xem cả món ẩn",
+        "description": "MANAGER / ADMIN; Cùng shape menu, gồm danh mục/món inactive.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "categories": [],
+                  "items": [
+                    {
+                      "id": "30000000-0000-0000-0000-000000000006",
+                      "categoryId": "20000000-0000-0000-0000-000000000002",
+                      "code": "MON-006",
+                      "name": "Cơm chiên hải sản",
+                      "description": "Cơm chiên tơi với tôm, mực và rau củ.",
+                      "imageUrl": "/menu/placeholder.svg",
+                      "priceVnd": 95000,
+                      "isActive": true,
+                      "isAvailable": true,
+                      "version": 1
+                    }
+                  ],
+                  "serverTime": "2026-11-02T15:00:00Z"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/menu-categories": {
+      "post": {
+        "summary": "Thêm danh mục",
+        "description": "MANAGER / ADMIN; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<categoryId>",
+                  "code": "CAT-5",
+                  "name": "Tráng miệng",
+                  "sortOrder": 4,
+                  "isActive": true,
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "code": "CAT-5",
+                "name": "Tráng miệng",
+                "sortOrder": 4,
+                "isActive": true
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu-categories/{id}": {
+      "patch": {
+        "summary": "Sửa/ẩn danh mục",
+        "description": "MANAGER / ADMIN; Chỉ gửi các trường cần sửa ngoài expectedVersion. Danh mục inactive chặn món mới nhưng không hủy món cũ.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<categoryId>",
+                  "name": "Tráng miệng theo mùa",
+                  "isActive": true,
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "name": "Tráng miệng theo mùa",
+                "isActive": true
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items": {
+      "post": {
+        "summary": "Thêm món ăn",
+        "description": "MANAGER / ADMIN; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<menuItemId>",
+                  "categoryId": "20000000-0000-0000-0000-000000000002",
+                  "code": "MON-021",
+                  "name": "Lẩu nấm chay",
+                  "description": "Nấm tươi, rau theo mùa và nước dùng thanh ngọt.",
+                  "imageUrl": "/menu/placeholder.svg",
+                  "priceVnd": 159000,
+                  "isActive": true,
+                  "isAvailable": true,
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "categoryId": "20000000-0000-0000-0000-000000000002",
+                "code": "MON-021",
+                "name": "Lẩu nấm chay",
+                "description": "Nấm tươi, rau theo mùa và nước dùng thanh ngọt.",
+                "imageUrl": "/menu/placeholder.svg",
+                "priceVnd": 159000,
+                "isActive": true
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items/{id}": {
+      "patch": {
+        "summary": "Sửa/ẩn món",
+        "description": "MANAGER / ADMIN; Giá và tên các dòng order đã gửi không thay đổi. imageUrl nhận /menu/... không chứa .. hoặc HTTPS.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "30000000-0000-0000-0000-000000000006",
+                  "categoryId": "20000000-0000-0000-0000-000000000002",
+                  "code": "MON-006",
+                  "name": "Cơm chiên hải sản",
+                  "description": "Cơm chiên tơi với tôm, mực và rau củ.",
+                  "imageUrl": "/menu/placeholder.svg",
+                  "priceVnd": 99000,
+                  "isActive": true,
+                  "isAvailable": true,
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "priceVnd": 99000,
+                "isActive": true
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items/{id}/availability": {
+      "patch": {
+        "summary": "Bật/tắt còn món",
+        "description": "KITCHEN / MANAGER / ADMIN; Đổi sang hết chặn submit/approve mới; không chặn chế biến món đã duyệt.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "30000000-0000-0000-0000-000000000006",
+                  "categoryId": "20000000-0000-0000-0000-000000000002",
+                  "code": "MON-006",
+                  "name": "Cơm chiên hải sản",
+                  "description": "Cơm chiên tơi với tôm, mực và rau củ.",
+                  "imageUrl": "/menu/placeholder.svg",
+                  "priceVnd": 95000,
+                  "isActive": true,
+                  "isAvailable": false,
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "isAvailable": false
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tables": {
+      "get": {
+        "summary": "Sơ đồ bàn và lượt đang mở",
+        "description": "Nhân viên; Bàn có khách: visit={id,partySize,version,orderId}. Không trả QR hash, joinCode hoặc join HMAC.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "40000000-0000-0000-0000-000000000001",
+                      "code": "B01",
+                      "capacity": 4,
+                      "isActive": true,
+                      "version": 1,
+                      "visit": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "Thêm bàn",
+        "description": "MANAGER / ADMIN; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<tableId>",
+                  "code": "B31",
+                  "capacity": 4,
+                  "isActive": true,
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "code": "B31",
+                "capacity": 4,
+                "isActive": true
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tables/{id}": {
+      "patch": {
+        "summary": "Sửa/ẩn bàn trống",
+        "description": "MANAGER / ADMIN; Không sửa bàn đang có lượt OPEN.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<tableId>",
+                  "code": "B01",
+                  "capacity": 6,
+                  "isActive": true,
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "code": "B01",
+                "capacity": 6,
+                "isActive": true
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tables/{id}/qr/rotate": {
+      "post": {
+        "summary": "Cấp/xoay link QR",
+        "description": "MANAGER / ADMIN; QR token chỉ định danh bàn, không cấp quyền đặt món. Mở qrUrl trong cửa sổ ẩn danh rồi nhập joinCode.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<tableId>",
+                  "code": "B01",
+                  "version": 2,
+                  "qrToken": "<token thực server sinh>",
+                  "qrUrl": "/qr/<token>"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/qr/{token}": {
+      "get": {
+        "summary": "Đọc thông tin QR công khai",
+        "description": "Công khai; ",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "tableCode": "B01",
+                  "hasOpenVisit": true
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/tables/{id}/visits": {
+      "post": {
+        "summary": "Mở lượt khách",
+        "description": "WAITER / MANAGER / ADMIN; partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. joinCode trong ví dụ là giả; dùng mã server thật trả về. Retry cùng key trả cùng lượt/mã.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "visitId": "<visitId>",
+                  "orderId": "<orderId>",
+                  "tableCode": "B01",
+                  "joinCode": "82649173",
+                  "version": 1,
+                  "orderVersion": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "partySize": 2
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/visits/{id}/join-code/rotate": {
+      "post": {
+        "summary": "Cấp lại mã tham gia",
+        "description": "WAITER / MANAGER / ADMIN; Thu hồi mọi guest session cũ; khách cần nhập mã mới. expectedVersion là version visit, không order.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "visitId": "<visitId>",
+                  "joinCode": "73182946",
+                  "version": 2
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guest/join": {
+      "post": {
+        "summary": "Khách tham gia đúng lượt",
+        "description": "Công khai; Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 5 lần/phút/IP.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "visitId": "<visitId>",
+                  "orderId": "<orderId>",
+                  "tableCode": "B01"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "qrToken": "{{qrToken}}",
+                "joinCode": "{{joinCode}}"
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guest/current": {
+      "get": {
+        "summary": "Lượt hiện tại của khách",
+        "description": "CUSTOMER + X-Actor: guest; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "visitId": "<visitId>",
+                  "orderId": "<orderId>",
+                  "tableCode": "B01"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/orders": {
+      "get": {
+        "summary": "Danh sách đơn",
+        "description": "Nhân viên; Query status=PAID hoặc CANCELLED để xem lịch sử; mặc định SERVING/AWAITING_PAYMENT. Bản local trả tối đa 200 đơn gần nhất, chưa cursor pagination.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "<orderId>",
+                      "code": "DH-4C8AA1B2C3D4",
+                      "orderType": "DINE_IN",
+                      "status": "SERVING",
+                      "version": 1,
+                      "tableCode": "B01",
+                      "pickupCode": null,
+                      "pickupName": null,
+                      "totalVnd": null,
+                      "createdAt": "2026-11-02T15:00:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}": {
+      "get": {
+        "summary": "Chi tiết đơn và mọi đợt gọi",
+        "description": "Nhân viên hoặc CUSTOMER đúng lượt; Luôn đọc lại version trước command. totalVnd chỉ chốt khi AWAITING_PAYMENT/PAID; subtotalVnd chưa bao gồm pending/cancelled/rejected.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<orderId>",
+                  "code": "DH-4C8AA1B2C3D4",
+                  "orderType": "DINE_IN",
+                  "tableCode": "B01",
+                  "visitId": "<visitId>",
+                  "pickupCode": null,
+                  "pickupName": null,
+                  "status": "SERVING",
+                  "version": 2,
+                  "totalVnd": null,
+                  "subtotalVnd": 190000,
+                  "pendingVnd": 0,
+                  "createdAt": "2026-11-02T15:00:00Z",
+                  "batches": [
+                    {
+                      "id": "<batchId>",
+                      "sequenceNo": 1,
+                      "status": "APPROVED",
+                      "version": 1,
+                      "createdAt": "2026-11-02T15:01:00Z",
+                      "decisionReason": null,
+                      "reviewedAt": null,
+                      "eligibleAt": "2026-11-02T15:01:00Z",
+                      "submittedByStaffId": null,
+                      "items": [
+                        {
+                          "id": "<itemId>",
+                          "batchId": "<batchId>",
+                          "menuItemId": "30000000-0000-0000-0000-000000000006",
+                          "menuCodeSnapshot": "MON-006",
+                          "menuNameSnapshot": "Cơm chiên hải sản",
+                          "quantity": 2,
+                          "unitPriceVnd": 95000,
+                          "note": "Ít cay, không hành",
+                          "status": "PLACED",
+                          "version": 1,
+                          "statusChangedAt": "2026-11-02T15:01:00Z",
+                          "createdAt": "2026-11-02T15:01:00Z",
+                          "updatedAt": "2026-11-02T15:01:00Z"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/takeaway-orders": {
+      "post": {
+        "summary": "Tạo đơn mang về và đợt đầu",
+        "description": "WAITER / CASHIER / MANAGER / ADMIN; Không tableId/visitId. pickupName tùy chọn, không bắt buộc số điện thoại. Đợt đầu tự duyệt; chỉ thu tiền sau bàn giao.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "orderId": "<orderId>",
+                  "code": "DH-A817B21C9D32",
+                  "pickupCode": "MV-8BC179D2",
+                  "orderVersion": 1,
+                  "batchId": "<batchId>",
+                  "status": "APPROVED",
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "pickupName": "Nguyễn Minh Anh",
+                "items": [
+                  {
+                    "menuItemId": "30000000-0000-0000-0000-000000000006",
+                    "quantity": 2,
+                    "observedPriceVnd": 95000,
+                    "note": "Ít cay, không hành"
+                  }
+                ]
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/batches": {
+      "post": {
+        "summary": "Gửi đợt món đầu/gọi thêm",
+        "description": "CUSTOMER đúng lượt / WAITER / MANAGER / ADMIN; CASHIER cho takeaway; Đợt đầu APPROVED; sequence>1 PENDING dù cùng món lần trước hoặc người gửi là manager. items 1–50 dòng; quantity 1–99. observedPriceVnd phải khớp giá menu lúc gửi. Payload khác với cùng key trả 409.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "orderId": "<orderId>",
+                  "orderVersion": 2,
+                  "batchId": "<batchId>",
+                  "status": "APPROVED",
+                  "version": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedOrderVersion": 1,
+                "items": [
+                  {
+                    "menuItemId": "30000000-0000-0000-0000-000000000006",
+                    "quantity": 2,
+                    "observedPriceVnd": 95000,
+                    "note": "Ít cay, không hành"
+                  }
+                ]
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/approval-batches": {
+      "get": {
+        "summary": "Đợt gọi thêm chờ duyệt",
+        "description": "KITCHEN / MANAGER / ADMIN; Luôn trả các batch PENDING; chưa hỗ trợ lọc trạng thái khác.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "<batchId>",
+                      "orderId": "<orderId>",
+                      "sequenceNo": 2,
+                      "version": 1,
+                      "createdAt": "2026-11-02T15:05:00Z",
+                      "submittedByStaffId": null,
+                      "orderCode": "DH-4C8AA1B2C3D4",
+                      "destination": "B01",
+                      "items": [
+                        {
+                          "id": "<itemId>",
+                          "batchId": "<batchId>",
+                          "menuItemId": "30000000-0000-0000-0000-000000000006",
+                          "menuCodeSnapshot": "MON-006",
+                          "menuNameSnapshot": "Cơm chiên hải sản",
+                          "quantity": 2,
+                          "unitPriceVnd": 95000,
+                          "note": "Ít cay, không hành",
+                          "status": "PLACED",
+                          "version": 1,
+                          "statusChangedAt": "2026-11-02T15:01:00Z",
+                          "createdAt": "2026-11-02T15:01:00Z",
+                          "updatedAt": "2026-11-02T15:01:00Z"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/batches/{id}/approve": {
+      "post": {
+        "summary": "Duyệt toàn đợt",
+        "description": "KITCHEN / MANAGER / ADMIN; expectedVersion là version batch. Manager/admin được tự duyệt; bếp không tự duyệt đợt mình gửi. Duyệt kiểm còn món và danh mục active, giữ snapshot giá lúc gửi.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<batchId>",
+                  "status": "APPROVED",
+                  "version": 2,
+                  "orderVersion": 4
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batches/{id}/reject": {
+      "post": {
+        "summary": "Từ chối toàn đợt",
+        "description": "KITCHEN / MANAGER / ADMIN; Không tác động batch đã có quyết định; rút/từ chối không tính tiền và không đưa món xuống bếp.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<batchId>",
+                  "status": "REJECTED",
+                  "version": 2,
+                  "orderVersion": 4
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "reason": "Khách đã đổi ý, không gọi thêm."
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batches/{id}/withdraw": {
+      "post": {
+        "summary": "Rút toàn đợt chờ",
+        "description": "CUSTOMER đúng lượt / nhân viên có quyền sửa đơn; Không tác động batch đã có quyết định; rút/từ chối không tính tiền và không đưa món xuống bếp.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<batchId>",
+                  "status": "WITHDRAWN",
+                  "version": 2,
+                  "orderVersion": 4
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kitchen/items": {
+      "get": {
+        "summary": "Hàng đợi chế biến",
+        "description": "KITCHEN / MANAGER / ADMIN; FIFO theo eligibleAt, chỉ batch APPROVED. Bản local trả toàn bộ queue đang hoạt động, chưa phân trang/lọc category/status.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "<itemId>",
+                      "batchId": "<batchId>",
+                      "menuItemId": "30000000-0000-0000-0000-000000000006",
+                      "menuNameSnapshot": "Cơm chiên hải sản",
+                      "quantity": 2,
+                      "note": "Ít cay, không hành",
+                      "status": "PLACED",
+                      "version": 1,
+                      "statusChangedAt": "2026-11-02T15:01:00Z",
+                      "sequenceNo": 1,
+                      "eligibleAt": "2026-11-02T15:01:00Z",
+                      "orderId": "<orderId>",
+                      "orderCode": "DH-4C8AA1B2C3D4",
+                      "orderType": "DINE_IN",
+                      "destination": "B01"
+                    }
+                  ],
+                  "serverTime": "2026-11-02T15:01:01Z"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/kitchen/changes": {
+      "get": {
+        "summary": "Lịch sử sửa/hủy gần đây",
+        "description": "KITCHEN / MANAGER / ADMIN; 100 thay đổi sửa/hủy gần nhất trong 15 phút; beforeData/afterData hiện là JSON string. Danh sách queue là nguồn trạng thái hiện tại, không dùng audit như message queue.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "<auditId>",
+                      "targetId": "<itemId>",
+                      "action": "ITEM_CANCEL",
+                      "beforeData": "{\"status\":\"ACCEPTED\"}",
+                      "afterData": "{\"status\":\"CANCELLED\"}",
+                      "reason": "Khách đổi món trước khi nấu.",
+                      "occurredAt": "2026-11-02T15:06:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/order-items/{id}/accept": {
+      "post": {
+        "summary": "Bếp tiếp nhận món",
+        "description": "KITCHEN / MANAGER / ADMIN; expectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<itemId>",
+                  "status": "ACCEPTED",
+                  "quantity": 2,
+                  "note": "Ít cay, không hành",
+                  "version": 2,
+                  "orderVersion": 5
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-items/{id}/prepare": {
+      "post": {
+        "summary": "Bắt đầu chuẩn bị",
+        "description": "KITCHEN / MANAGER / ADMIN; expectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<itemId>",
+                  "status": "PREPARING",
+                  "quantity": 2,
+                  "note": "Ít cay, không hành",
+                  "version": 2,
+                  "orderVersion": 5
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-items/{id}/ready": {
+      "post": {
+        "summary": "Bếp hoàn thành món",
+        "description": "KITCHEN / MANAGER / ADMIN; expectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<itemId>",
+                  "status": "READY",
+                  "quantity": 2,
+                  "note": "Ít cay, không hành",
+                  "version": 2,
+                  "orderVersion": 5
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-items/{id}": {
+      "patch": {
+        "summary": "Giảm số lượng/sửa ghi chú trước nấu",
+        "description": "CUSTOMER đúng lượt / nhân viên có quyền sửa đơn; Chỉ PLACED/ACCEPTED; quantity không tăng. Tăng hoặc đổi món phải gửi batch mới cần duyệt. note=null xóa ghi chú.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<itemId>",
+                  "status": "PLACED",
+                  "quantity": 1,
+                  "note": "Không hành, ít dầu",
+                  "version": 2,
+                  "orderVersion": 4
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "quantity": 1,
+                "note": "Không hành, ít dầu"
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-items/{id}/cancel": {
+      "post": {
+        "summary": "Hủy dòng món",
+        "description": "Khách/nhân viên đúng quyền trước chuẩn bị; MANAGER/ADMIN khi PREPARING/READY; expectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<itemId>",
+                  "status": "CANCELLED",
+                  "quantity": 2,
+                  "note": "Ít cay, không hành",
+                  "version": 2,
+                  "orderVersion": 5
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "reason": "Khách dị ứng thành phần, quản lý đồng ý hủy."
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/cancel": {
+      "post": {
+        "summary": "Hủy đơn chưa từng bắt đầu nấu",
+        "description": "WAITER / MANAGER / ADMIN; CASHIER cho takeaway; Kiểm cả audit lịch sử PREPARING. Nếu đã nấu và hủy ngoại lệ hết món thì thanh toán ZERO thay hủy toàn đơn. Đơn rỗng tại bàn được hủy và đóng lượt.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<orderId>",
+                  "status": "CANCELLED",
+                  "version": 3
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "reason": "Khách đổi lịch nhận, chưa chế biến."
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/serving/items": {
+      "get": {
+        "summary": "Danh sách món READY",
+        "description": "WAITER / MANAGER / ADMIN; CASHIER chỉ takeaway; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "<itemId>",
+                      "batchId": "<batchId>",
+                      "menuItemId": "30000000-0000-0000-0000-000000000006",
+                      "menuNameSnapshot": "Cơm chiên hải sản",
+                      "quantity": 2,
+                      "note": "Ít cay, không hành",
+                      "status": "READY",
+                      "version": 1,
+                      "statusChangedAt": "2026-11-02T15:01:00Z",
+                      "sequenceNo": 1,
+                      "eligibleAt": "2026-11-02T15:01:00Z",
+                      "orderId": "<orderId>",
+                      "orderCode": "DH-4C8AA1B2C3D4",
+                      "orderType": "DINE_IN",
+                      "destination": "B01"
+                    }
+                  ],
+                  "serverTime": "2026-11-02T15:01:01Z"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/order-items/{id}/serve": {
+      "post": {
+        "summary": "Xác nhận bàn giao món",
+        "description": "WAITER / MANAGER / ADMIN; CASHIER chỉ takeaway; expectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<itemId>",
+                  "status": "SERVED",
+                  "quantity": 2,
+                  "note": "Ít cay, không hành",
+                  "version": 2,
+                  "orderVersion": 5
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checkout/orders": {
+      "get": {
+        "summary": "Đơn đang chờ thu tiền",
+        "description": "CASHIER / MANAGER / ADMIN; ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "<orderId>",
+                      "code": "DH-4C8AA1B2C3D4",
+                      "status": "AWAITING_PAYMENT",
+                      "totalVnd": 190000,
+                      "version": 8,
+                      "tableCode": "B01",
+                      "orderType": "DINE_IN",
+                      "pickupCode": null,
+                      "pickupName": null,
+                      "createdAt": "2026-11-02T15:00:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/request-payment": {
+      "post": {
+        "summary": "Xin thanh toán và chốt tiền",
+        "description": "CUSTOMER đúng lượt / WAITER / CASHIER / MANAGER / ADMIN; Mọi dòng phải SERVED/CANCELLED/REJECTED và không batch PENDING. Đơn chưa gửi món phải hủy lượt trống. Không gửi totalVnd từ client.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<orderId>",
+                  "status": "AWAITING_PAYMENT",
+                  "totalVnd": 190000,
+                  "version": 8
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/reopen": {
+      "post": {
+        "summary": "Mở lại đơn chờ trả",
+        "description": "CASHIER / MANAGER / ADMIN; Chỉ AWAITING_PAYMENT chưa có payment, không mở lại PAID. Xóa tổng đã chốt; lần gọi thêm vẫn phải duyệt.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<orderId>",
+                  "status": "SERVING",
+                  "version": 9
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "reason": "Khách muốn gọi thêm món trước khi trả tiền."
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/payments": {
+      "post": {
+        "summary": "Xác nhận thực nhận tiền",
+        "description": "CASHIER / MANAGER / ADMIN; amountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference=\"VCB-20261102-153022-001\"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<paymentId>",
+                  "receiptNo": "BN-C1D2E3F4A5B678",
+                  "method": "CASH",
+                  "amountVnd": 190000,
+                  "paidAt": "2026-11-02T15:30:00Z",
+                  "changeVnd": 10000,
+                  "orderStatus": "PAID",
+                  "orderVersion": 9
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expectedVersion": 1,
+                "method": "CASH",
+                "amountVnd": 190000,
+                "tenderedVnd": 200000,
+                "transferReference": null
+              },
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/receipt": {
+      "get": {
+        "summary": "Biên nhận nội bộ",
+        "description": "WAITER / CASHIER / MANAGER / ADMIN; Không phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<paymentId>",
+                  "receiptNo": "BN-C1D2E3F4A5B678",
+                  "method": "CASH",
+                  "amountVnd": 190000,
+                  "tenderedVnd": 200000,
+                  "transferReference": null,
+                  "paidAt": "2026-11-02T15:30:00Z",
+                  "changeVnd": 10000,
+                  "order": {
+                    "id": "<orderId>",
+                    "code": "DH-4C8AA1B2C3D4",
+                    "orderType": "DINE_IN",
+                    "tableCode": "B01",
+                    "visitId": "<visitId>",
+                    "pickupCode": null,
+                    "pickupName": null,
+                    "status": "PAID",
+                    "version": 2,
+                    "totalVnd": 190000,
+                    "subtotalVnd": 190000,
+                    "pendingVnd": 0,
+                    "createdAt": "2026-11-02T15:00:00Z",
+                    "batches": [
+                      {
+                        "id": "<batchId>",
+                        "sequenceNo": 1,
+                        "status": "APPROVED",
+                        "version": 1,
+                        "createdAt": "2026-11-02T15:01:00Z",
+                        "decisionReason": null,
+                        "reviewedAt": null,
+                        "eligibleAt": "2026-11-02T15:01:00Z",
+                        "submittedByStaffId": null,
+                        "items": [
+                          {
+                            "id": "<itemId>",
+                            "batchId": "<batchId>",
+                            "menuItemId": "30000000-0000-0000-0000-000000000006",
+                            "menuCodeSnapshot": "MON-006",
+                            "menuNameSnapshot": "Cơm chiên hải sản",
+                            "quantity": 2,
+                            "unitPriceVnd": 95000,
+                            "note": "Ít cay, không hành",
+                            "status": "PLACED",
+                            "version": 1,
+                            "statusChangedAt": "2026-11-02T15:01:00Z",
+                            "createdAt": "2026-11-02T15:01:00Z",
+                            "updatedAt": "2026-11-02T15:01:00Z"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{key}": {
+      "get": {
+        "summary": "Tra kết quả theo Idempotency-Key",
+        "description": "Cùng principal đã gửi; 404 chưa chắc request cũ không còn chạy: chỉ retry cùng key/payload. Replay window 24h; sau đó 410 và không tạo lại nghiệp vụ.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "COMPLETED",
+                  "response": {
+                    "orderId": "<orderId>",
+                    "batchId": "<batchId>",
+                    "status": "APPROVED",
+                    "version": 1
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    }
+  }
+}

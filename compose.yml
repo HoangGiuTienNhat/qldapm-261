@@ -1,0 +1,62 @@
+name: restaurant_ordering
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-restaurant}
+      POSTGRES_USER: ${POSTGRES_USER:-restaurant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-demo-postgres-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  migrate:
+    build:
+      context: ./Backend
+      target: runtime
+    command: [--migrate]
+    environment: &backend-env
+      ConnectionStrings__Database: Host=postgres;Database=${POSTGRES_DB:-restaurant};Username=${POSTGRES_USER:-restaurant};Password=${POSTGRES_PASSWORD:-local-demo-postgres-change-me}
+      Demo__Password: ${DEMO_PASSWORD:-RestaurantDemo!2026}
+      Security__JoinSecret: ${JOIN_SECRET:-local-only-join-secret-change-before-deploying}
+      ASPNETCORE_URLS: http://+:8080
+      PublicOrigin: http://localhost:${PORT:-3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - auth_keys:/keys
+    restart: 'no'
+  backend:
+    build:
+      context: ./Backend
+      target: runtime
+    restart: unless-stopped
+    environment: *backend-env
+    volumes:
+      - auth_keys:/keys
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  frontend:
+    build: ./Frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+    depends_on: [backend]
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${PORT:-3000}:80'
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on: [backend, frontend]
+volumes:
+  postgres_data:
+  auth_keys:

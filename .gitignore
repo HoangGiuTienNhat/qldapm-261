@@ -1,0 +1,11 @@
+.env
+**/bin/
+**/obj/
+**/node_modules/
+**/.next/
+**/TestResults/
+**/playwright-report/
+**/test-results/
+artifacts/
+*.user
+*.log

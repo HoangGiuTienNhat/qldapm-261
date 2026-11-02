@@ -1,0 +1,1355 @@
+{
+  "info": {
+    "name": "Bếp Nhà — Restaurant Ordering",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "actor",
+      "value": "staff"
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "batchId",
+      "value": ""
+    },
+    {
+      "key": "itemId",
+      "value": ""
+    },
+    {
+      "key": "visitId",
+      "value": ""
+    },
+    {
+      "key": "tableId",
+      "value": "40000000-0000-0000-0000-000000000001"
+    },
+    {
+      "key": "menuItemId",
+      "value": "30000000-0000-0000-0000-000000000006"
+    },
+    {
+      "key": "categoryId",
+      "value": "20000000-0000-0000-0000-000000000002"
+    },
+    {
+      "key": "staffId",
+      "value": "10000000-0000-0000-0000-000000000001"
+    },
+    {
+      "key": "qrToken",
+      "value": ""
+    },
+    {
+      "key": "joinCode",
+      "value": ""
+    },
+    {
+      "key": "version",
+      "value": "1"
+    },
+    {
+      "key": "orderVersion",
+      "value": "1"
+    },
+    {
+      "key": "retryKey",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Kiểm tra tiến trình",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/health/live",
+        "description": "Kiểm tra tiến trình — Công khai\n"
+      }
+    },
+    {
+      "name": "02 Kiểm tra kết nối database",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/health/ready",
+        "description": "Kiểm tra kết nối database — Công khai\n"
+      }
+    },
+    {
+      "name": "03 Lấy CSRF token",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/csrf",
+        "description": "Lấy CSRF token — Công khai\nCookie CSRF được lưu trong cookie jar. Lấy token mới sau khi đăng nhập/đăng xuất hoặc đổi principal. Không dùng chuỗi minh họa làm token thật."
+      }
+    },
+    {
+      "name": "04 Hợp đồng OpenAPI",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/openapi.json",
+        "description": "Hợp đồng OpenAPI — Công khai\nFile sinh từ catalog test và được đối chiếu route thực. Không chứa secret runtime."
+      }
+    },
+    {
+      "name": "05 Đăng nhập nhân viên",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "description": "Đăng nhập nhân viên — Công khai\nSeed local có admin, manager, waiter, kitchen, cashier cùng mật khẩu DEMO_PASSWORD. Cookie ros_staff là HttpOnly; Postman giữ tự động. Mật khẩu ví dụ chỉ dành cho môi trường demo localhost.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"RestaurantDemo!2026\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "06 Đọc phiên hiện tại",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/me",
+        "description": "Đọc phiên hiện tại — Nhân viên hoặc khách đúng phiên\n"
+      }
+    },
+    {
+      "name": "07 Đăng xuất",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/logout",
+        "description": "Đăng xuất — Phiên hiện tại\n",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 Đổi mật khẩu",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/change-password",
+        "description": "Đổi mật khẩu — Nhân viên\nThu hồi các phiên cũ và cấp lại cookie phiên hiện tại. Mật khẩu mới 12–128 ký tự. Đừng gửi ví dụ này nếu muốn giữ nguyên password demo.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"RestaurantDemo!2026\",\n  \"newPassword\": \"BepNhaNewPass!2026\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "09 Danh sách nhân viên",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/staff",
+        "description": "Danh sách nhân viên — ADMIN\n"
+      }
+    },
+    {
+      "name": "10 Tạo nhân viên",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/staff",
+        "description": "Tạo nhân viên — ADMIN\n",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"phucvu02\",\n  \"displayName\": \"Nguyễn Minh Anh\",\n  \"initialPassword\": \"MinhAnhDemo!2026\",\n  \"roles\": [\n    \"WAITER\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 Sửa/khóa nhân viên",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/staff/{{staffId}}",
+        "description": "Sửa/khóa nhân viên — ADMIN\nKhông khóa admin active cuối cùng. Khóa/đổi quyền/reset thu hồi phiên. Ví dụ response rút gọn, response thật còn username/displayName/roles/mustChangePassword.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"displayName\": \"Nguyễn Minh Anh\",\n  \"active\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12 Thay bộ vai trò nhân viên",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/staff/{{staffId}}/roles",
+        "description": "Thay bộ vai trò nhân viên — ADMIN\nroles là bộ đầy đủ thay thế, không phải chỉ các role bổ sung.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"roles\": [\n    \"WAITER\",\n    \"CASHIER\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "13 Đặt mật khẩu tạm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/staff/{{staffId}}/reset-password",
+        "description": "Đặt mật khẩu tạm — ADMIN\n",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"temporaryPassword\": \"TemporaryPass!2026\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "14 Xem thực đơn",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/menu",
+        "description": "Xem thực đơn — Công khai\nQuery tùy chọn: categoryId=<UUID>, search=Cơm. Response chỉ danh mục/món active; món hết vẫn hiển thị. Món và danh mục còn createdAt/updatedAt trong response thật."
+      }
+    },
+    {
+      "name": "15 Xem cả món ẩn",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/manage/menu-items",
+        "description": "Xem cả món ẩn — MANAGER / ADMIN\nCùng shape menu, gồm danh mục/món inactive."
+      }
+    },
+    {
+      "name": "16 Thêm danh mục",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/menu-categories",
+        "description": "Thêm danh mục — MANAGER / ADMIN\n",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"CAT-5\",\n  \"name\": \"Tráng miệng\",\n  \"sortOrder\": 4,\n  \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "17 Sửa/ẩn danh mục",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/menu-categories/{{categoryId}}",
+        "description": "Sửa/ẩn danh mục — MANAGER / ADMIN\nChỉ gửi các trường cần sửa ngoài expectedVersion. Danh mục inactive chặn món mới nhưng không hủy món cũ.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"name\": \"Tráng miệng theo mùa\",\n  \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "18 Thêm món ăn",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/menu-items",
+        "description": "Thêm món ăn — MANAGER / ADMIN\n",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"categoryId\": \"20000000-0000-0000-0000-000000000002\",\n  \"code\": \"MON-021\",\n  \"name\": \"Lẩu nấm chay\",\n  \"description\": \"Nấm tươi, rau theo mùa và nước dùng thanh ngọt.\",\n  \"imageUrl\": \"/menu/placeholder.svg\",\n  \"priceVnd\": 159000,\n  \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "19 Sửa/ẩn món",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/menu-items/{{menuItemId}}",
+        "description": "Sửa/ẩn món — MANAGER / ADMIN\nGiá và tên các dòng order đã gửi không thay đổi. imageUrl nhận /menu/... không chứa .. hoặc HTTPS.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"priceVnd\": 99000,\n  \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "20 Bật/tắt còn món",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/menu-items/{{menuItemId}}/availability",
+        "description": "Bật/tắt còn món — KITCHEN / MANAGER / ADMIN\nĐổi sang hết chặn submit/approve mới; không chặn chế biến món đã duyệt.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"isAvailable\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "21 Sơ đồ bàn và lượt đang mở",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/tables",
+        "description": "Sơ đồ bàn và lượt đang mở — Nhân viên\nBàn có khách: visit={id,partySize,version,orderId}. Không trả QR hash, joinCode hoặc join HMAC."
+      }
+    },
+    {
+      "name": "22 Thêm bàn",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/tables",
+        "description": "Thêm bàn — MANAGER / ADMIN\n",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"B31\",\n  \"capacity\": 4,\n  \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "23 Sửa/ẩn bàn trống",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/tables/{{tableId}}",
+        "description": "Sửa/ẩn bàn trống — MANAGER / ADMIN\nKhông sửa bàn đang có lượt OPEN.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"code\": \"B01\",\n  \"capacity\": 6,\n  \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "24 Cấp/xoay link QR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/tables/{{tableId}}/qr/rotate",
+        "description": "Cấp/xoay link QR — MANAGER / ADMIN\nQR token chỉ định danh bàn, không cấp quyền đặt món. Mở qrUrl trong cửa sổ ẩn danh rồi nhập joinCode.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "25 Đọc thông tin QR công khai",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/qr/{{qrToken}}",
+        "description": "Đọc thông tin QR công khai — Công khai\n"
+      }
+    },
+    {
+      "name": "26 Mở lượt khách",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/tables/{{tableId}}/visits",
+        "description": "Mở lượt khách — WAITER / MANAGER / ADMIN\npartySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. joinCode trong ví dụ là giả; dùng mã server thật trả về. Retry cùng key trả cùng lượt/mã.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"partySize\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "27 Cấp lại mã tham gia",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/visits/{{visitId}}/join-code/rotate",
+        "description": "Cấp lại mã tham gia — WAITER / MANAGER / ADMIN\nThu hồi mọi guest session cũ; khách cần nhập mã mới. expectedVersion là version visit, không order.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "28 Khách tham gia đúng lượt",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/guest/join",
+        "description": "Khách tham gia đúng lượt — Công khai\nLưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 5 lần/phút/IP.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"qrToken\": \"{{qrToken}}\",\n  \"joinCode\": \"{{joinCode}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "29 Lượt hiện tại của khách",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/guest/current",
+        "description": "Lượt hiện tại của khách — CUSTOMER + X-Actor: guest\n"
+      }
+    },
+    {
+      "name": "30 Danh sách đơn",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders",
+        "description": "Danh sách đơn — Nhân viên\nQuery status=PAID hoặc CANCELLED để xem lịch sử; mặc định SERVING/AWAITING_PAYMENT. Bản local trả tối đa 200 đơn gần nhất, chưa cursor pagination."
+      }
+    },
+    {
+      "name": "31 Chi tiết đơn và mọi đợt gọi",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}",
+        "description": "Chi tiết đơn và mọi đợt gọi — Nhân viên hoặc CUSTOMER đúng lượt\nLuôn đọc lại version trước command. totalVnd chỉ chốt khi AWAITING_PAYMENT/PAID; subtotalVnd chưa bao gồm pending/cancelled/rejected."
+      }
+    },
+    {
+      "name": "32 Tạo đơn mang về và đợt đầu",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/takeaway-orders",
+        "description": "Tạo đơn mang về và đợt đầu — WAITER / CASHIER / MANAGER / ADMIN\nKhông tableId/visitId. pickupName tùy chọn, không bắt buộc số điện thoại. Đợt đầu tự duyệt; chỉ thu tiền sau bàn giao.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pickupName\": \"Nguyễn Minh Anh\",\n  \"items\": [\n    {\n      \"menuItemId\": \"30000000-0000-0000-0000-000000000006\",\n      \"quantity\": 2,\n      \"observedPriceVnd\": 95000,\n      \"note\": \"Ít cay, không hành\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "33 Gửi đợt món đầu/gọi thêm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/batches",
+        "description": "Gửi đợt món đầu/gọi thêm — CUSTOMER đúng lượt / WAITER / MANAGER / ADMIN; CASHIER cho takeaway\nĐợt đầu APPROVED; sequence>1 PENDING dù cùng món lần trước hoặc người gửi là manager. items 1–50 dòng; quantity 1–99. observedPriceVnd phải khớp giá menu lúc gửi. Payload khác với cùng key trả 409.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedOrderVersion\": {{orderVersion}},\n  \"items\": [\n    {\n      \"menuItemId\": \"30000000-0000-0000-0000-000000000006\",\n      \"quantity\": 2,\n      \"observedPriceVnd\": 95000,\n      \"note\": \"Ít cay, không hành\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "34 Đợt gọi thêm chờ duyệt",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/approval-batches",
+        "description": "Đợt gọi thêm chờ duyệt — KITCHEN / MANAGER / ADMIN\nLuôn trả các batch PENDING; chưa hỗ trợ lọc trạng thái khác."
+      }
+    },
+    {
+      "name": "35 Duyệt toàn đợt",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/batches/{{batchId}}/approve",
+        "description": "Duyệt toàn đợt — KITCHEN / MANAGER / ADMIN\nexpectedVersion là version batch. Manager/admin được tự duyệt; bếp không tự duyệt đợt mình gửi. Duyệt kiểm còn món và danh mục active, giữ snapshot giá lúc gửi.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "36 Từ chối toàn đợt",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/batches/{{batchId}}/reject",
+        "description": "Từ chối toàn đợt — KITCHEN / MANAGER / ADMIN\nKhông tác động batch đã có quyết định; rút/từ chối không tính tiền và không đưa món xuống bếp.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"reason\": \"Khách đã đổi ý, không gọi thêm.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "37 Rút toàn đợt chờ",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/batches/{{batchId}}/withdraw",
+        "description": "Rút toàn đợt chờ — CUSTOMER đúng lượt / nhân viên có quyền sửa đơn\nKhông tác động batch đã có quyết định; rút/từ chối không tính tiền và không đưa món xuống bếp.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "38 Hàng đợi chế biến",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/kitchen/items",
+        "description": "Hàng đợi chế biến — KITCHEN / MANAGER / ADMIN\nFIFO theo eligibleAt, chỉ batch APPROVED. Bản local trả toàn bộ queue đang hoạt động, chưa phân trang/lọc category/status."
+      }
+    },
+    {
+      "name": "39 Lịch sử sửa/hủy gần đây",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/kitchen/changes",
+        "description": "Lịch sử sửa/hủy gần đây — KITCHEN / MANAGER / ADMIN\n100 thay đổi sửa/hủy gần nhất trong 15 phút; beforeData/afterData hiện là JSON string. Danh sách queue là nguồn trạng thái hiện tại, không dùng audit như message queue."
+      }
+    },
+    {
+      "name": "40 Bếp tiếp nhận món",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/order-items/{{itemId}}/accept",
+        "description": "Bếp tiếp nhận món — KITCHEN / MANAGER / ADMIN\nexpectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "41 Bắt đầu chuẩn bị",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/order-items/{{itemId}}/prepare",
+        "description": "Bắt đầu chuẩn bị — KITCHEN / MANAGER / ADMIN\nexpectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "42 Bếp hoàn thành món",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/order-items/{{itemId}}/ready",
+        "description": "Bếp hoàn thành món — KITCHEN / MANAGER / ADMIN\nexpectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "43 Giảm số lượng/sửa ghi chú trước nấu",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/order-items/{{itemId}}",
+        "description": "Giảm số lượng/sửa ghi chú trước nấu — CUSTOMER đúng lượt / nhân viên có quyền sửa đơn\nChỉ PLACED/ACCEPTED; quantity không tăng. Tăng hoặc đổi món phải gửi batch mới cần duyệt. note=null xóa ghi chú.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"quantity\": 1,\n  \"note\": \"Không hành, ít dầu\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "44 Hủy dòng món",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/order-items/{{itemId}}/cancel",
+        "description": "Hủy dòng món — Khách/nhân viên đúng quyền trước chuẩn bị; MANAGER/ADMIN khi PREPARING/READY\nexpectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"reason\": \"Khách dị ứng thành phần, quản lý đồng ý hủy.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "45 Hủy đơn chưa từng bắt đầu nấu",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/cancel",
+        "description": "Hủy đơn chưa từng bắt đầu nấu — WAITER / MANAGER / ADMIN; CASHIER cho takeaway\nKiểm cả audit lịch sử PREPARING. Nếu đã nấu và hủy ngoại lệ hết món thì thanh toán ZERO thay hủy toàn đơn. Đơn rỗng tại bàn được hủy và đóng lượt.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"reason\": \"Khách đổi lịch nhận, chưa chế biến.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "46 Danh sách món READY",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/serving/items",
+        "description": "Danh sách món READY — WAITER / MANAGER / ADMIN; CASHIER chỉ takeaway\n"
+      }
+    },
+    {
+      "name": "47 Xác nhận bàn giao món",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/order-items/{{itemId}}/serve",
+        "description": "Xác nhận bàn giao món — WAITER / MANAGER / ADMIN; CASHIER chỉ takeaway\nexpectedVersion là version item. Luồng PLACED→ACCEPTED→PREPARING→READY→SERVED. Không quay lùi/nhảy bước. SERVED không hủy; hủy sau PREPARING/READY bắt buộc lý do và manager/admin.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "48 Đơn đang chờ thu tiền",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/checkout/orders",
+        "description": "Đơn đang chờ thu tiền — CASHIER / MANAGER / ADMIN\n"
+      }
+    },
+    {
+      "name": "49 Xin thanh toán và chốt tiền",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/request-payment",
+        "description": "Xin thanh toán và chốt tiền — CUSTOMER đúng lượt / WAITER / CASHIER / MANAGER / ADMIN\nMọi dòng phải SERVED/CANCELLED/REJECTED và không batch PENDING. Đơn chưa gửi món phải hủy lượt trống. Không gửi totalVnd từ client.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "50 Mở lại đơn chờ trả",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/reopen",
+        "description": "Mở lại đơn chờ trả — CASHIER / MANAGER / ADMIN\nChỉ AWAITING_PAYMENT chưa có payment, không mở lại PAID. Xóa tổng đã chốt; lần gọi thêm vẫn phải duyệt.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"reason\": \"Khách muốn gọi thêm món trước khi trả tiền.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "51 Xác nhận thực nhận tiền",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/payments",
+        "description": "Xác nhận thực nhận tiền — CASHIER / MANAGER / ADMIN\namountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference=\"VCB-20261102-153022-001\"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedVersion\": {{version}},\n  \"method\": \"CASH\",\n  \"amountVnd\": 190000,\n  \"tenderedVnd\": 200000,\n  \"transferReference\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "52 Biên nhận nội bộ",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/receipt",
+        "description": "Biên nhận nội bộ — WAITER / CASHIER / MANAGER / ADMIN\nKhông phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ."
+      }
+    },
+    {
+      "name": "53 Tra kết quả theo Idempotency-Key",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/requests/{{requestKey}}",
+        "description": "Tra kết quả theo Idempotency-Key — Cùng principal đã gửi\n404 chưa chắc request cũ không còn chạy: chỉ retry cùng key/payload. Replay window 24h; sau đó 410 và không tạo lại nghiệp vụ."
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.request.method !== 'GET') {",
+          " const actor = pm.collectionVariables.get('actor') || 'staff';",
+          " pm.sendRequest({url:pm.collectionVariables.get('baseUrl')+'/api/v1/auth/csrf',method:'GET',header:{'X-Actor':actor}},(err,res)=>{",
+          "  if(err || res.code!==200) throw new Error('Cannot get CSRF token');",
+          "  pm.request.headers.upsert({key:'X-CSRF-TOKEN',value:res.json().token});",
+          " });",
+          " pm.request.headers.upsert({key:'Idempotency-Key',value:pm.collectionVariables.get('retryKey') || pm.variables.replaceIn('{{$guid}}')});",
+          "} "
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Success or documented business error',()=>pm.expect([200,401,403,404,409,410,422,429]).to.include(pm.response.code));",
+          "if(pm.response.code===200){",
+          " const d=pm.response.json();",
+          " ['orderId','batchId','visitId','qrToken','joinCode'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});",
+          " if(d.orderVersion)pm.collectionVariables.set('orderVersion',String(d.orderVersion));",
+          " if(d.version)pm.collectionVariables.set('version',String(d.version));",
+          " if(d.batches){pm.collectionVariables.set('orderId',d.id);pm.collectionVariables.set('orderVersion',String(d.version));const b=d.batches.at(-1);if(b){pm.collectionVariables.set('batchId',b.id);if(b.items[0]){pm.collectionVariables.set('itemId',b.items[0].id);pm.collectionVariables.set('version',String(b.items[0].version));}}}",
+          "} "
+        ]
+      }
+    }
+  ]
+}
