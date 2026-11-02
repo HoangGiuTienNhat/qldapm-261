@@ -14,7 +14,7 @@ Phiên bản hiện hành: **1.2 · 03/11/2026 · đã triển khai MVP localhos
 | P1.6 | [Phục vụ](P1.6-theo-doi-va-phuc-vu.md) | Bàn giao món |
 | P1.7 | [Thanh toán](P1.7-thanh-toan-va-hoan-tat.md) | Chốt tiền và kết thúc lượt |
 
-Quy tắc phê duyệt/sửa/hủy chỉ định nghĩa tại P1.4; KDS tham chiếu. Bảng, token và đóng lượt thuộc P1.3; P1.7 chỉ gọi thao tác đóng lượt trong giao dịch thanh toán. Database có một từ điển tại ADR-0003; các SSOT dẫn tên bảng thay vì chép lại schema.
+Quy tắc phê duyệt/sửa/hủy chỉ định nghĩa tại P1.4; KDS tham chiếu. Bảng, token và đóng lượt thuộc P1.3; P1.7 chỉ gọi thao tác đóng lượt trong giao dịch thanh toán. Từ điển schema hiện hành nằm ở [docs/db](../docs/db/README.md), mỗi bảng một file; [ADR-0003](../ADR/0003-database.md) giải thích quyết định cấu trúc. Các SSOT chỉ dẫn bảng/tài liệu, không chép lại schema.
 
 ## Quy trình thay đổi bắt buộc
 
@@ -22,7 +22,7 @@ Quy tắc phê duyệt/sửa/hủy chỉ định nghĩa tại P1.4; KDS tham chi
 2. Cập nhật **đúng file SSOT** trước hoặc trong cùng PR với code; tăng revision, ghi ngày và lý do ở lịch sử file.
 3. Nếu đổi cách thực hiện, cập nhật/thêm ADR; nếu đổi schema, thêm migration mới, không sửa migration đã áp dụng.
 4. Sửa API/OpenAPI, UI, test và kế hoạch liên quan trong cùng PR. Liên kết mã BR/QC tương ứng.
-5. Reviewer kiểm tra SSOT ↔ API ↔ migration ↔ code ↔ test. Chưa đồng bộ thì PR chưa hoàn tất.
+5. Reviewer kiểm tra SSOT ↔ API ↔ migration ↔ code ↔ test ↔ docs/db và ADR/GUIDE liên quan. Chạy `python scripts/generate_db_docs.py --check` để phát hiện tài liệu/nguồn backend lệch; review ngữ nghĩa vẫn bắt buộc. Chưa đồng bộ thì thay đổi chưa hoàn tất.
 6. Nếu code đang lệch SSOT, mở issue xác định bug hay thay đổi được chấp thuận; không tự coi code là yêu cầu mới.
 
 Hiện bổ sung `Backend/Restaurant.Api/openapi.json` làm hợp đồng giao tiếp sinh từ catalog transport và đối chiếu endpoint backend; đây không phải nguồn nghiệp vụ thay thế SSOT. Có script kiểm route/catalog và sinh API docs; chưa có CI/PR template tự kiểm toàn bộ SSOT. Quy trình review SSOT/code vẫn bắt buộc.

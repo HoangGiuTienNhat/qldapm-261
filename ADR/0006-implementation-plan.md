@@ -1,5 +1,7 @@
 # ADR-0006 — Lộ trình và kế hoạch triển khai
 
+> Đối chiếu database 03/11/2026: hiện dùng 4 EF SQL-first migrations, chưa có ModelSnapshot/bundle và chưa hỗ trợ Down tự động. Cây/lệnh scaffolding dự kiến dưới đây không phải cách chạy hiện tại; xem [ADR-0004](0004-docker-va-migration.md), [từng bảng](../docs/db/README.md) và [hướng dẫn migration](../GUIDE/DATABASE-MIGRATIONS.md).
+
 > Cập nhật triển khai02/11/2026: bản MVP localhost đã chạy. [ADR-0008](0008-mvp-local-va-quyet-dinh-trien-khai.md) thay thế các lựa chọn/giới hạn khác biệt bên dưới; [API thực thi](../docs/api/README.md) và [trạng thái](../docs/IMPLEMENTATION-STATUS.md) là bằng chứng hiện tại. Phần ghi chưa triển khai ở nội dung gốc mô tả thời điểm thiết kế ban đầu.
 
 Ngày 02/11/2026 · Trạng thái: **kế hoạch; toàn bộ task chưa bắt đầu thực thi code**. Không dùng trạng thái hoàn thành tài liệu để đánh dấu hoàn thành feature.

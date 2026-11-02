@@ -6,6 +6,8 @@ Thư mục này là nơi tập trung hướng dẫn vận hành, phát triển v
 |---|---|
 | Chạy Docker lần đầu, chạy các lần sau, dừng và dựng lại | [DOCKER.md](DOCKER.md) |
 | Môi trường hoàn toàn mới nhưng giữ dữ liệu và image cũ | [DOCKER.md — môi trường sạch](DOCKER.md#7-chạy-môi-trường-mới-hoàn-toàn-mà-không-xóa-dữ-liệu-cũ) |
+| Hiểu migration tăng dần, Up/Down và đồng bộ database docs | [DATABASE-MIGRATIONS.md](DATABASE-MIGRATIONS.md) |
+| Hiểu vai trò từng bảng và từng trường | [Từ điển database](../docs/db/README.md) |
 | Dùng ảnh QR cố định, link bàn và vai khách | [QR-TAI-BAN.md](QR-TAI-BAN.md) |
 | Tra cứu đơn đã thanh toán, người thu và thời điểm | [LICH-SU-THANH-TOAN.md](LICH-SU-THANH-TOAN.md) |
 | Thử API bằng Postman | [Postman](../docs/api/POSTMAN.md) và [từng endpoint](../docs/api/README.md) |
@@ -20,7 +22,7 @@ Thư mục này là nơi tập trung hướng dẫn vận hành, phát triển v
 
 ## Mẹo cho developer
 
-- Cập nhật SSOT, migration và API docs cùng thay đổi feature. Script `python scripts/generate_api_docs.py` kiểm catalog khớp route backend.
+- Cập nhật SSOT, ADR, migration, docs/db và API docs cùng thay đổi feature; chạy `python scripts/generate_db_docs.py --check` trước commit. Không chạy smoke tạo dữ liệu trong nhiệm vụ chỉ đọc/tài liệu. Script `python scripts/generate_api_docs.py` kiểm catalog khớp route backend.
 - Unit test: `docker build --target tests -t restaurant-ordering-tests ./Backend`.
 - Smoke HTTP: `python scripts/smoke.py`; script tạo dữ liệu test có thanh toán/hủy, không tự xóa dữ liệu người dùng.
 - `.env` chứa cấu hình local, không stage/commit. Stage theo danh sách file hoặc folder đúng phạm vi; tránh `git add .` khi có tài liệu riêng trong `temp-docs`.

@@ -58,3 +58,11 @@ Bằng chứng và ảnh chụp được tạo trước khi dọn dữ liệu de
 Đã dọn trong một transaction: payments, order_items, order_batches, orders, guest_sessions, visits, audit_events, idempotency_records và 3 món riêng của smoke lịch sử (`HIST-*`). Không đưa thao tác này vào migration hoặc startup. Giữ nguyên 9 tài khoản, mật khẩu, trạng thái và 9 phân quyền; so sánh toàn bộ dữ liệu staff/roles/user_roles trước và sau ngay trong transaction, khác biệt sẽ rollback. Giữ menu/cấu hình bàn và QR cố định để tiếp tục phát triển thuận tiện; không xóa volume hoặc Docker images.
 
 Kiểm tra sau dọn: orders=0, payments=0, visits=0; đăng nhập admin thành công, API staff vẫn trả 9 tài khoản và API lịch sử trả 0 kết quả. [Giao diện sau dọn](payment-history-after-reset.png). Các tài khoản thử được giữ nguyên cùng các tài khoản còn lại theo yêu cầu bảo toàn account.
+
+## Từ điển database và migration — 03/11/2026
+
+- Export metadata catalog bằng transaction READ ONLY trên đúng Compose project `restaurant_ordering`, file `compose.yml` được chỉ định rõ. Không đọc dòng tài khoản/đơn; không chạy migrate, seed, smoke, hoặc lệnh xóa dữ liệu/image/volume.
+- Đối chiếu 4 MigrationId với source: đủ 16 bảng (15 ứng dụng + EF), 144 trường và 10 trigger functions. `python scripts/generate_db_docs.py --check` đạt.
+- Kiểm tra guard bằng dữ liệu mô phỏng trong bộ nhớ: thiếu giải thích cột mới bị từ chối; fingerprint backend lệch làm check báo lỗi. Không sửa DB/file nguồn để thử lỗi.
+- Kiểm liên kết local trong các Markdown thay đổi: đạt. `git diff --check` đạt.
+- Không đổi mã ứng dụng/schema/migration; không chạy lại unit/HTTP tạo dữ liệu cho thay đổi tài liệu này. [Tài liệu DB](../db/README.md) · [Quyết định đồng bộ](../../ADR/0011-dong-bo-tai-lieu-database.md).

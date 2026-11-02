@@ -87,3 +87,11 @@ Stack lựa chọn: **C# / ASP.NET Core .NET 10 + EF Core/Npgsql + PostgreSQL 16
 `temp-docs/` là đầu vào lịch sử, không phải đặc tả đang có hiệu lực. Không tạo bản mô tả phân hệ thứ hai ngoài SSOT. ADR ghi cách thực hiện và lý do; quy tắc nghiệp vụ được sở hữu bởi từng SSOT.
 
 Admin có [lịch sử thanh toán](GUIDE/LICH-SU-THANH-TOAN.md) để tra cứu toàn bộ đơn đã chốt, thời điểm và người thu. Smoke riêng: `python scripts/payment_history_smoke.py`.
+
+## Database và đồng bộ tài liệu
+
+- [16 bảng — mỗi bảng một tài liệu, đầy đủ 144 trường](docs/db/README.md).
+- [Migration tăng dần và ý nghĩa Up/Down hiện tại](GUIDE/DATABASE-MIGRATIONS.md): 4 bản EF SQL-first, Down chưa hỗ trợ tự động; không sửa migration đã áp dụng.
+- [Quyết định cấu trúc](ADR/0003-database.md), [Docker/migration thực tế](ADR/0004-docker-va-migration.md), [quy trình đồng bộ](ADR/0011-dong-bo-tai-lieu-database.md).
+
+Trước commit thay đổi backend: review SSOT/ADR và DB/API docs bị ảnh hưởng, chạy `python scripts/generate_db_docs.py --check`. Khi cần cập nhật schema metadata, `python scripts/export_db_metadata.py` chỉ đọc catalog của đúng database dự án đang chạy, không migrate/seed hoặc xóa dữ liệu. Không xóa Docker images/volumes hoặc thao tác database dự án khác. [AGENTS.md](AGENTS.md) ghi điều kiện hoàn tất cho công việc tiếp theo.

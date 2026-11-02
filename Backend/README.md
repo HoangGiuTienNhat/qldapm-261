@@ -10,3 +10,5 @@
 - [SSOT nghiệp vụ](../SSOT/README.md).
 
 Run tại repo root: `docker compose up -d --build`. Unit: `docker build --target tests -t restaurant-ordering-tests ./Backend`. Chi tiết triển khai khác với cây mục tiêu ban đầu tại [ADR-0008](../ADR/0008-mvp-local-va-quyet-dinh-trien-khai.md); hiện SQL-first migrations, chưa có code-first snapshot generator. [API từng endpoint](../docs/api/README.md) · [Postman](../docs/api/POSTMAN.md).
+
+Database hiện có 4 EF SQL-first migrations tăng dần, chưa hỗ trợ Down tự động, không có ModelSnapshot/scaffolding. Xem [từng bảng và trường](../docs/db/README.md), [hướng dẫn migration](../GUIDE/DATABASE-MIGRATIONS.md). Khi đổi backend, review tài liệu và chạy `python scripts/generate_db_docs.py --check` trước commit.

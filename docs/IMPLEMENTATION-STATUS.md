@@ -19,3 +19,5 @@ Done bản local: Compose chạy được, luồng chính qua HTTP thật đạt
 Cập nhật03/11/2026: migration003, QR cố định, 72 HTTP checks riêng QR, 131 checks luồng chính và3 frontend unit tests copy/fallback. [ADR-0009](../ADR/0009-qr-co-dinh-tai-ban.md).
 
 Cập nhật 03/11/2026: migration004, lịch sử thanh toán ADMIN với snapshot ID/username/tên người thu, thời gian, toàn bộ đơn, lọc và phân trang. 55 endpoints; 25 backend unit + 5 frontend unit; 88 HTTP checks lịch sử và 131 HTTP checks hồi quy. [ADR-0010](../ADR/0010-lich-su-thanh-toan-admin.md). Theo yêu cầu chủ dự án, dữ liệu nghiệp vụ dev được dọn riêng sau kiểm chứng; giữ tài khoản/phân quyền, không xóa Docker images.
+
+03/11/2026 — Hoàn thiện từ điển database: 16 bảng/144 trường/10 trigger functions, metadata catalog chỉ đọc, generator/check offline và hướng dẫn Up/Down theo đúng 4 migration. ADR0003/0004 được đối chiếu hiện trạng; quy trình đồng bộ code/SSOT/ADR/docs ghi ở ADR0011 và AGENTS.md. Không thay runtime/schema, không chạy migration/seed/smoke ghi dữ liệu, không xóa Docker images hoặc dữ liệu.
