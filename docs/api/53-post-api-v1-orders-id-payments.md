@@ -38,11 +38,17 @@ Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.7](.
   "paidAt": "2026-11-02T15:30:00Z",
   "changeVnd": 10000,
   "orderStatus": "PAID",
-  "orderVersion": 9
+  "orderVersion": 9,
+  "receivedBy": {
+    "staffId": "10000000-0000-0000-0000-000000000003",
+    "username": "cashier",
+    "displayName": "Nhân viên thu ngân",
+    "snapshotAvailable": true
+  }
 }
 ```
 
-amountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference="VCB-20261102-153022-001"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction.
+amountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference="VCB-20261102-153022-001"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction. Server tự chụp snapshot người đang xác nhận và thời gian UTC; client không gửi receivedBy/paidAt để quyết định các giá trị này.
 
 ## Cách thử và lỗi cần kiểm tra
 

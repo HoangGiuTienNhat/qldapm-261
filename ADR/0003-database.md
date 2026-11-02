@@ -215,8 +215,10 @@ Index `(batch_id,id)`, `(menu_item_id)`; partial `(status,status_changed_at,id) 
 | transfer_reference | varchar(120) NULL | BANK_TRANSFER iff NN không trắng; không UQ vì nội dung chuyển tiền có thể trùng |
 | paid_at | timestamptz NN DEFAULT now() | Thời điểm xác nhận thực nhận |
 | received_by_staff_id | uuid NN FK staff_users(id) | CASHIER/MANAGER/ADMIN tại thời điểm thực hiện |
+| received_by_username_snapshot | varchar(64) NULL cho dev cũ | INSERT mới bắt buộc khớp staff tại lúc thu; bất biến |
+| received_by_display_name_snapshot | varchar(120) NULL cho dev cũ | Cùng NULL hoặc cùng có giá trị với username; INSERT mới bắt buộc khớp staff |
 
-ZERO ⇔ amount=0, tendered và reference NULL. CASH/BANK_TRANSFER ⇔ amount>0. CASH reference NULL; BANK_TRANSFER tendered NULL. `change_vnd` là giá trị SELECT/API `tendered_vnd - amount_vnd`, không cột lưu. Không payment status PENDING giả vì không có gateway; chỉ ghi sau khi nhân viên xác nhận đã nhận tiền. Không UPDATE/DELETE cho app role. Index `(paid_at,id)` phục vụ lịch sử/đối soát cơ bản.
+ZERO ⇔ amount=0, tendered và reference NULL. CASH/BANK_TRANSFER ⇔ amount>0. CASH reference NULL; BANK_TRANSFER tendered NULL. `change_vnd` là giá trị SELECT/API `tendered_vnd - amount_vnd`, không cột lưu. Không payment status PENDING giả vì không có gateway; chỉ ghi sau khi nhân viên xác nhận đã nhận tiền. Không UPDATE/DELETE cho app role. Migration004 thêm index `(paid_at DESC,id DESC)`, `(received_by_staff_id,paid_at DESC,id DESC)`, `(method,paid_at DESC,id DESC)` cho lịch sử admin. Snapshot người thu lấy dưới khóa FOR SHARE, trigger INSERT đối chiếu. `paid_at` do server sinh với millisecond, API/UI lọc ngày UTC+07. Giữ nguyên payment/order bất biến và bảo vệ DELETE mọi batch/item của PAID. Không backfill tên dev cũ. [ADR-0010](0010-lich-su-thanh-toan-admin.md).
 
 ### 3.14. `audit_events` — append-only · dùng chung
 

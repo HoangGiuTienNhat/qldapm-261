@@ -2217,6 +2217,237 @@
         }
       }
     },
+    "/api/v1/admin/payments": {
+      "get": {
+        "summary": "Admin tra cứu toàn bộ lịch sử thanh toán",
+        "description": "ADMIN; Query tùy chọn: search (mã đơn/biên nhận/bàn/mã nhận/tên người nhận), fromDate=2026-11-03, toDate=2026-11-03, method=CASH|BANK_TRANSFER|ZERO, orderType=DINE_IN|TAKEAWAY, receivedByStaffId=<UUID>, page=1, pageSize=20 (tối đa100). Ngày theo UTC+07:00, fromDate bắt đầu ngày và toDate hết ngày. Không giới hạn200 đơn: phân trang tới hết lịch sử. Sort paidAt DESC,id DESC. Chỉ gồm PAID, gồm cả tổng0. Không role khác truy cập được. Tên người nhận là snapshot lúc thu; dữ liệu dev trước migration004 không backfill: username/displayName=null, snapshotAvailable=false.",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CASH",
+                "BANK_TRANSFER",
+                "ZERO"
+              ]
+            }
+          },
+          {
+            "name": "orderType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DINE_IN",
+                "TAKEAWAY"
+              ]
+            }
+          },
+          {
+            "name": "receivedByStaffId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "paymentId": "<paymentId>",
+                      "orderId": "<orderId>",
+                      "orderCode": "DH-4C8AA1B2C3D4",
+                      "orderType": "DINE_IN",
+                      "tableCode": "B01",
+                      "pickupCode": null,
+                      "pickupName": null,
+                      "createdAt": "2026-11-03T03:15:00Z",
+                      "receiptNo": "BN-C1D2E3F4A5B678",
+                      "method": "CASH",
+                      "amountVnd": 190000,
+                      "tenderedVnd": 200000,
+                      "changeVnd": 10000,
+                      "transferReference": null,
+                      "paidAt": "2026-11-03T04:15:20Z",
+                      "receivedBy": {
+                        "staffId": "10000000-0000-0000-0000-000000000003",
+                        "username": "cashier",
+                        "displayName": "Nhân viên thu ngân",
+                        "snapshotAvailable": true
+                      }
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalCount": 1,
+                  "totalPages": 1
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payments/{id}": {
+      "get": {
+        "summary": "Admin xem đầy đủ đơn và người nhận thanh toán",
+        "description": "ADMIN; id là paymentId, không phải orderId. Trả thời điểm UTC, ID/username/họ tên người nhận tại thời điểm ghi nhận, tiền nhận/trả lại/reference và toàn bộ đợt/dòng món, kể cả hủy/từ chối/rút. Dữ liệu chỉ đọc, không thay đổi khi tên nhân viên hoặc menu đổi. 404 nếu payment không tồn tại. Không xóa/khôi phục dữ liệu dev cũ.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<paymentId>",
+                  "orderId": "<orderId>",
+                  "receiptNo": "BN-C1D2E3F4A5B678",
+                  "method": "CASH",
+                  "amountVnd": 190000,
+                  "tenderedVnd": 200000,
+                  "transferReference": null,
+                  "paidAt": "2026-11-03T04:15:20Z",
+                  "changeVnd": 10000,
+                  "receivedBy": {
+                    "staffId": "10000000-0000-0000-0000-000000000003",
+                    "username": "cashier",
+                    "displayName": "Nhân viên thu ngân",
+                    "snapshotAvailable": true
+                  },
+                  "order": {
+                    "id": "<orderId>",
+                    "code": "DH-4C8AA1B2C3D4",
+                    "orderType": "DINE_IN",
+                    "tableCode": "B01",
+                    "visitId": "<visitId>",
+                    "pickupCode": null,
+                    "pickupName": null,
+                    "status": "PAID",
+                    "version": 9,
+                    "totalVnd": 190000,
+                    "subtotalVnd": 190000,
+                    "pendingVnd": 0,
+                    "createdAt": "2026-11-02T15:00:00Z",
+                    "batches": [
+                      {
+                        "id": "<batchId>",
+                        "sequenceNo": 1,
+                        "status": "APPROVED",
+                        "version": 1,
+                        "createdAt": "2026-11-02T15:01:00Z",
+                        "decisionReason": null,
+                        "reviewedAt": null,
+                        "eligibleAt": "2026-11-02T15:01:00Z",
+                        "submittedByStaffId": null,
+                        "items": [
+                          {
+                            "id": "<itemId>",
+                            "batchId": "<batchId>",
+                            "menuItemId": "30000000-0000-0000-0000-000000000006",
+                            "menuCodeSnapshot": "MON-006",
+                            "menuNameSnapshot": "Cơm chiên hải sản",
+                            "quantity": 2,
+                            "unitPriceVnd": 95000,
+                            "note": "Ít cay, không hành",
+                            "status": "SERVED",
+                            "version": 1,
+                            "statusChangedAt": "2026-11-02T15:01:00Z",
+                            "createdAt": "2026-11-02T15:01:00Z",
+                            "updatedAt": "2026-11-02T15:01:00Z"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/orders/{id}/request-payment": {
       "post": {
         "summary": "Xin thanh toán và chốt tiền",
@@ -2322,7 +2553,7 @@
     "/api/v1/orders/{id}/payments": {
       "post": {
         "summary": "Xác nhận thực nhận tiền",
-        "description": "CASHIER / MANAGER / ADMIN; amountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference=\"VCB-20261102-153022-001\"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction.",
+        "description": "CASHIER / MANAGER / ADMIN; amountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference=\"VCB-20261102-153022-001\"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction. Server tự chụp snapshot người đang xác nhận và thời gian UTC; client không gửi receivedBy/paidAt để quyết định các giá trị này.",
         "parameters": [
           {
             "name": "id",
@@ -2347,7 +2578,13 @@
                   "paidAt": "2026-11-02T15:30:00Z",
                   "changeVnd": 10000,
                   "orderStatus": "PAID",
-                  "orderVersion": 9
+                  "orderVersion": 9,
+                  "receivedBy": {
+                    "staffId": "10000000-0000-0000-0000-000000000003",
+                    "username": "cashier",
+                    "displayName": "Nhân viên thu ngân",
+                    "snapshotAvailable": true
+                  }
                 }
               }
             }
@@ -2381,7 +2618,7 @@
     "/api/v1/orders/{id}/receipt": {
       "get": {
         "summary": "Biên nhận nội bộ",
-        "description": "WAITER / CASHIER / MANAGER / ADMIN; Không phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ.",
+        "description": "WAITER / CASHIER / MANAGER / ADMIN; Không phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ. receivedBy bổ sung thông tin người nhận được lưu khi thu tiền; bản cũ snapshotAvailable=false.",
         "parameters": [
           {
             "name": "id",
@@ -2400,13 +2637,20 @@
               "application/json": {
                 "example": {
                   "id": "<paymentId>",
+                  "orderId": "<orderId>",
                   "receiptNo": "BN-C1D2E3F4A5B678",
                   "method": "CASH",
                   "amountVnd": 190000,
                   "tenderedVnd": 200000,
                   "transferReference": null,
-                  "paidAt": "2026-11-02T15:30:00Z",
+                  "paidAt": "2026-11-03T04:15:20Z",
                   "changeVnd": 10000,
+                  "receivedBy": {
+                    "staffId": "10000000-0000-0000-0000-000000000003",
+                    "username": "cashier",
+                    "displayName": "Nhân viên thu ngân",
+                    "snapshotAvailable": true
+                  },
                   "order": {
                     "id": "<orderId>",
                     "code": "DH-4C8AA1B2C3D4",
@@ -2416,7 +2660,7 @@
                     "pickupCode": null,
                     "pickupName": null,
                     "status": "PAID",
-                    "version": 2,
+                    "version": 9,
                     "totalVnd": 190000,
                     "subtotalVnd": 190000,
                     "pendingVnd": 0,
@@ -2442,7 +2686,7 @@
                             "quantity": 2,
                             "unitPriceVnd": 95000,
                             "note": "Ít cay, không hành",
-                            "status": "PLACED",
+                            "status": "SERVED",
                             "version": 1,
                             "statusChangedAt": "2026-11-02T15:01:00Z",
                             "createdAt": "2026-11-02T15:01:00Z",

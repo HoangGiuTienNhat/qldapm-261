@@ -1,6 +1,6 @@
 # Danh mục API thực thi
 
-**53 endpoint** · Base URL: `http://localhost:3000` · [Hướng dẫn Postman](POSTMAN.md).
+**55 endpoint** · Base URL: `http://localhost:3000` · [Hướng dẫn Postman](POSTMAN.md).
 
 | Method | API | Tài liệu |
 |---|---|---|
@@ -52,8 +52,10 @@
 | GET | `/api/v1/serving/items` | [Danh sách món READY](46-get-api-v1-serving-items.md) |
 | POST | `/api/v1/order-items/{id}/serve` | [Xác nhận bàn giao món](47-post-api-v1-order-items-id-serve.md) |
 | GET | `/api/v1/checkout/orders` | [Đơn đang chờ thu tiền](48-get-api-v1-checkout-orders.md) |
-| POST | `/api/v1/orders/{id}/request-payment` | [Xin thanh toán và chốt tiền](49-post-api-v1-orders-id-request-payment.md) |
-| POST | `/api/v1/orders/{id}/reopen` | [Mở lại đơn chờ trả](50-post-api-v1-orders-id-reopen.md) |
-| POST | `/api/v1/orders/{id}/payments` | [Xác nhận thực nhận tiền](51-post-api-v1-orders-id-payments.md) |
-| GET | `/api/v1/orders/{id}/receipt` | [Biên nhận nội bộ](52-get-api-v1-orders-id-receipt.md) |
-| GET | `/api/v1/requests/{key}` | [Tra kết quả theo Idempotency-Key](53-get-api-v1-requests-key.md) |
+| GET | `/api/v1/admin/payments` | [Admin tra cứu toàn bộ lịch sử thanh toán](49-get-api-v1-admin-payments.md) |
+| GET | `/api/v1/admin/payments/{id}` | [Admin xem đầy đủ đơn và người nhận thanh toán](50-get-api-v1-admin-payments-id.md) |
+| POST | `/api/v1/orders/{id}/request-payment` | [Xin thanh toán và chốt tiền](51-post-api-v1-orders-id-request-payment.md) |
+| POST | `/api/v1/orders/{id}/reopen` | [Mở lại đơn chờ trả](52-post-api-v1-orders-id-reopen.md) |
+| POST | `/api/v1/orders/{id}/payments` | [Xác nhận thực nhận tiền](53-post-api-v1-orders-id-payments.md) |
+| GET | `/api/v1/orders/{id}/receipt` | [Biên nhận nội bộ](54-get-api-v1-orders-id-receipt.md) |
+| GET | `/api/v1/requests/{key}` | [Tra kết quả theo Idempotency-Key](55-get-api-v1-requests-key.md) |

@@ -65,13 +65,25 @@ add('POST','/api/v1/orders/{id}/request-payment','Xin thanh toán và chốt ti�
 add('POST','/api/v1/orders/{id}/reopen','Mở lại đơn chờ trả','CASHIER / MANAGER / ADMIN',{**V,'reason':'Khách muốn gọi thêm món trước khi trả tiền.'},{'id':'<orderId>','status':'SERVING','version':9},'P1.7','Chỉ AWAITING_PAYMENT chưa có payment, không mở lại PAID. Xóa tổng đã chốt; lần gọi thêm vẫn phải duyệt.')
 add('POST','/api/v1/orders/{id}/payments','Xác nhận thực nhận tiền','CASHIER / MANAGER / ADMIN',{**V,'method':'CASH','amountVnd':190000,'tenderedVnd':200000,'transferReference':None},{'id':'<paymentId>','receiptNo':'BN-C1D2E3F4A5B678','method':'CASH','amountVnd':190000,'paidAt':'2026-11-02T15:30:00Z','changeVnd':10000,'orderStatus':'PAID','orderVersion':9},'P1.7','amountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference="VCB-20261102-153022-001"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction.')
 add('GET','/api/v1/orders/{id}/receipt','Biên nhận nội bộ','WAITER / CASHIER / MANAGER / ADMIN',None,{'id':'<paymentId>','receiptNo':'BN-C1D2E3F4A5B678','method':'CASH','amountVnd':190000,'tenderedVnd':200000,'transferReference':None,'paidAt':'2026-11-02T15:30:00Z','changeVnd':10000,'order':{**ORDER,'status':'PAID','totalVnd':190000}},'P1.7','Không phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ.')
+RECEIVER={'staffId':'10000000-0000-0000-0000-000000000003','username':'cashier','displayName':'Nhân viên thu ngân','snapshotAvailable':True}
+PAID_ORDER=json.loads(json.dumps(ORDER));PAID_ORDER.update(status='PAID',totalVnd=190000,version=9)
+for batch in PAID_ORDER['batches']:
+    for item in batch['items']:item['status']='SERVED'
+PAYMENT_DETAIL={'id':'<paymentId>','orderId':'<orderId>','receiptNo':'BN-C1D2E3F4A5B678','method':'CASH','amountVnd':190000,'tenderedVnd':200000,'transferReference':None,'paidAt':'2026-11-03T04:15:20Z','changeVnd':10000,'receivedBy':RECEIVER,'order':PAID_ORDER}
+HISTORY_ROW={'paymentId':'<paymentId>','orderId':'<orderId>','orderCode':'DH-4C8AA1B2C3D4','orderType':'DINE_IN','tableCode':'B01','pickupCode':None,'pickupName':None,'createdAt':'2026-11-03T03:15:00Z','receiptNo':'BN-C1D2E3F4A5B678','method':'CASH','amountVnd':190000,'tenderedVnd':200000,'changeVnd':10000,'transferReference':None,'paidAt':'2026-11-03T04:15:20Z','receivedBy':RECEIVER}
+add('GET','/api/v1/admin/payments','Admin tra cứu toàn bộ lịch sử thanh toán','ADMIN',None,{'items':[HISTORY_ROW],'page':1,'pageSize':20,'totalCount':1,'totalPages':1},'P1.7','Query tùy chọn: search (mã đơn/biên nhận/bàn/mã nhận/tên người nhận), fromDate=2026-11-03, toDate=2026-11-03, method=CASH|BANK_TRANSFER|ZERO, orderType=DINE_IN|TAKEAWAY, receivedByStaffId=<UUID>, page=1, pageSize=20 (tối đa100). Ngày theo UTC+07:00, fromDate bắt đầu ngày và toDate hết ngày. Không giới hạn200 đơn: phân trang tới hết lịch sử. Sort paidAt DESC,id DESC. Chỉ gồm PAID, gồm cả tổng0. Không role khác truy cập được. Tên người nhận là snapshot lúc thu; dữ liệu dev trước migration004 không backfill: username/displayName=null, snapshotAvailable=false.')
+add('GET','/api/v1/admin/payments/{id}','Admin xem đầy đủ đơn và người nhận thanh toán','ADMIN',None,PAYMENT_DETAIL,'P1.7','id là paymentId, không phải orderId. Trả thời điểm UTC, ID/username/họ tên người nhận tại thời điểm ghi nhận, tiền nhận/trả lại/reference và toàn bộ đợt/dòng món, kể cả hủy/từ chối/rút. Dữ liệu chỉ đọc, không thay đổi khi tên nhân viên hoặc menu đổi. 404 nếu payment không tồn tại. Không xóa/khôi phục dữ liệu dev cũ.')
+title,role,body,response,feature,notes=SPEC[('GET','/api/v1/orders/{id}/receipt')]
+SPEC[('GET','/api/v1/orders/{id}/receipt')]=(title,role,body,PAYMENT_DETAIL,feature,notes+' receivedBy bổ sung thông tin người nhận được lưu khi thu tiền; bản cũ snapshotAvailable=false.')
+title,role,body,response,feature,notes=SPEC[('POST','/api/v1/orders/{id}/payments')]
+SPEC[('POST','/api/v1/orders/{id}/payments')]=(title,role,body,{**response,'receivedBy':RECEIVER},feature,notes+' Server tự chụp snapshot người đang xác nhận và thời gian UTC; client không gửi receivedBy/paidAt để quyết định các giá trị này.')
 add('GET','/api/v1/requests/{key}','Tra kết quả theo Idempotency-Key','Cùng principal đã gửi',None,{'status':'COMPLETED','response':{'orderId':'<orderId>','batchId':'<batchId>','status':'APPROVED','version':1}},'P1.4','404 chưa chắc request cũ không còn chạy: chỉ retry cùng key/payload. Replay window 24h; sau đó 410 và không tạo lại nghiệp vụ.')
 add('GET','/api/v1/openapi.json','Hợp đồng OpenAPI','Công khai',None,{'openapi':'3.0.3','info':{'title':'Restaurant Ordering API','version':'1.0.0'},'paths':{}},None,'File sinh từ catalog test và được đối chiếu route thực. Không chứa secret runtime.')
 
 routes=[(method.upper(),re.sub(r':guid','',path)) for method,path in re.findall(r'app.Map(Get|Post|Put|Patch|Delete)\("([^\"]+)"',(ROOT/'Backend/Restaurant.Api/Program.cs').read_text(encoding='utf-8'))]
 assert set(routes)==set(SPEC),f'Route/catalog mismatch: undocumented={set(routes)-set(SPEC)}, stale={set(SPEC)-set(routes)}'
 ssot_files={p.name.split('-')[0]:p.name for p in (ROOT/'SSOT').glob('P1.*.md')}
-collection={'info':{'name':'Bếp Nhà — Restaurant Ordering','schema':'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},'variable':[{'key':k,'value':v} for k,v in {'baseUrl':'http://localhost:3000','actor':'staff','orderId':'','batchId':'','itemId':'','visitId':'','tableId':'40000000-0000-0000-0000-000000000001','menuItemId':ROW['menuItemId'],'categoryId':MENU['categoryId'],'staffId':'10000000-0000-0000-0000-000000000001','qrToken':'','version':'1','orderVersion':'1','retryKey':''}.items()], 'item':[]}
+collection={'info':{'name':'Bếp Nhà — Restaurant Ordering','schema':'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},'variable':[{'key':k,'value':v} for k,v in {'baseUrl':'http://localhost:3000','actor':'staff','orderId':'','paymentId':'','batchId':'','itemId':'','visitId':'','tableId':'40000000-0000-0000-0000-000000000001','menuItemId':ROW['menuItemId'],'categoryId':MENU['categoryId'],'staffId':'10000000-0000-0000-0000-000000000001','qrToken':'','version':'1','orderVersion':'1','retryKey':''}.items()], 'item':[]}
 pre="""if (pm.request.method !== 'GET') {
  const actor = pm.collectionVariables.get('actor') || 'staff';
  pm.sendRequest({url:pm.collectionVariables.get('baseUrl')+'/api/v1/auth/csrf',method:'GET',header:{'X-Actor':actor}},(err,res)=>{
@@ -84,12 +96,14 @@ post="""pm.test('Success or documented business error',()=>pm.expect([200,401,40
 if(pm.response.code===200){
  const d=pm.response.json();
  ['orderId','batchId','visitId','qrToken'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});
+ if(d.id && d.receiptNo)pm.collectionVariables.set('paymentId',d.id);
  if(d.orderVersion)pm.collectionVariables.set('orderVersion',String(d.orderVersion));
  if(d.version)pm.collectionVariables.set('version',String(d.version));
  if(d.batches){pm.collectionVariables.set('orderId',d.id);pm.collectionVariables.set('orderVersion',String(d.version));const b=d.batches.at(-1);if(b){pm.collectionVariables.set('batchId',b.id);if(b.items[0]){pm.collectionVariables.set('itemId',b.items[0].id);pm.collectionVariables.set('version',String(b.items[0].version));}}}
 } """
 collection['event']=[{'listen':'prerequest','script':{'type':'text/javascript','exec':pre.splitlines()}},{'listen':'test','script':{'type':'text/javascript','exec':post.splitlines()}}]
 def path_variable(path):
+    if '/admin/payments/' in path:return 'paymentId'
     if '/order-items/' in path:return 'itemId'
     if '/menu-items/' in path:return 'menuItemId'
     if '/menu-categories/' in path:return 'categoryId'
@@ -155,6 +169,11 @@ Các lỗi chung: 400 JSON/key sai; 401 hết phiên; 403 sai quyền/CSRF; 404 
     if raw is not None:req['body']={'mode':'raw','raw':raw,'options':{'raw':{'language':'json'}}}
     collection['item'].append({'name':f'{n:02d} {title}','request':req})
     parameters=[{'name':x,'in':'path','required':True,'schema':{'type':'string',**({'format':'uuid'} if x in ['id','key'] else {})}} for x in re.findall(r'{([^}]+)}',path)]
+    if path=='/api/v1/admin/payments':
+        parameters += [{'name':name,'in':'query','required':False,'schema':schema} for name,schema in [
+            ('search',{'type':'string','maxLength':120}),('fromDate',{'type':'string','format':'date'}),('toDate',{'type':'string','format':'date'}),
+            ('method',{'type':'string','enum':['CASH','BANK_TRANSFER','ZERO']}),('orderType',{'type':'string','enum':['DINE_IN','TAKEAWAY']}),
+            ('receivedByStaffId',{'type':'string','format':'uuid'}),('page',{'type':'integer','minimum':1,'maximum':1000000,'default':1}),('pageSize',{'type':'integer','minimum':1,'maximum':100,'default':20})]]
     operation={'summary':title,'description':role+'; '+notes,'parameters':parameters,'responses':{'200':{'description':'Thành công; example phản ánh shape, ID động cần thay.','content':{'application/json':{'example':response}}},'409':{'description':'Business/version conflict'},'422':{'description':'Validation failed'}}}
     if body is not None:operation['requestBody']={'required':True,'content':{'application/json':{'example':body,'schema':{'type':'object'}}}}
     openapi['paths'].setdefault(path,{})[method.lower()]=operation

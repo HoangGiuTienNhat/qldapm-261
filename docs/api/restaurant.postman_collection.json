@@ -17,6 +17,10 @@
       "value": ""
     },
     {
+      "key": "paymentId",
+      "value": ""
+    },
+    {
       "key": "batchId",
       "value": ""
     },
@@ -1188,7 +1192,43 @@
       }
     },
     {
-      "name": "49 Xin thanh toán và chốt tiền",
+      "name": "49 Admin tra cứu toàn bộ lịch sử thanh toán",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/admin/payments",
+        "description": "Admin tra cứu toàn bộ lịch sử thanh toán — ADMIN\nQuery tùy chọn: search (mã đơn/biên nhận/bàn/mã nhận/tên người nhận), fromDate=2026-11-03, toDate=2026-11-03, method=CASH|BANK_TRANSFER|ZERO, orderType=DINE_IN|TAKEAWAY, receivedByStaffId=<UUID>, page=1, pageSize=20 (tối đa100). Ngày theo UTC+07:00, fromDate bắt đầu ngày và toDate hết ngày. Không giới hạn200 đơn: phân trang tới hết lịch sử. Sort paidAt DESC,id DESC. Chỉ gồm PAID, gồm cả tổng0. Không role khác truy cập được. Tên người nhận là snapshot lúc thu; dữ liệu dev trước migration004 không backfill: username/displayName=null, snapshotAvailable=false."
+      }
+    },
+    {
+      "name": "50 Admin xem đầy đủ đơn và người nhận thanh toán",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/admin/payments/{{paymentId}}",
+        "description": "Admin xem đầy đủ đơn và người nhận thanh toán — ADMIN\nid là paymentId, không phải orderId. Trả thời điểm UTC, ID/username/họ tên người nhận tại thời điểm ghi nhận, tiền nhận/trả lại/reference và toàn bộ đợt/dòng món, kể cả hủy/từ chối/rút. Dữ liệu chỉ đọc, không thay đổi khi tên nhân viên hoặc menu đổi. 404 nếu payment không tồn tại. Không xóa/khôi phục dữ liệu dev cũ."
+      }
+    },
+    {
+      "name": "51 Xin thanh toán và chốt tiền",
       "request": {
         "method": "POST",
         "header": [
@@ -1215,7 +1255,7 @@
       }
     },
     {
-      "name": "50 Mở lại đơn chờ trả",
+      "name": "52 Mở lại đơn chờ trả",
       "request": {
         "method": "POST",
         "header": [
@@ -1242,7 +1282,7 @@
       }
     },
     {
-      "name": "51 Xác nhận thực nhận tiền",
+      "name": "53 Xác nhận thực nhận tiền",
       "request": {
         "method": "POST",
         "header": [
@@ -1256,7 +1296,7 @@
           }
         ],
         "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/payments",
-        "description": "Xác nhận thực nhận tiền — CASHIER / MANAGER / ADMIN\namountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference=\"VCB-20261102-153022-001\"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction.",
+        "description": "Xác nhận thực nhận tiền — CASHIER / MANAGER / ADMIN\namountVnd bằng tổng chốt. BANK_TRANSFER: tenderedVnd=null, transferReference=\"VCB-20261102-153022-001\"; ZERO: amountVnd=0, tenderedVnd=null, transferReference=null. Không thu hai lần/order. Chốt payment/order/visit/revoke khách cùng transaction. Server tự chụp snapshot người đang xác nhận và thời gian UTC; client không gửi receivedBy/paidAt để quyết định các giá trị này.",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"expectedVersion\": {{version}},\n  \"method\": \"CASH\",\n  \"amountVnd\": 190000,\n  \"tenderedVnd\": 200000,\n  \"transferReference\": null\n}",
@@ -1269,7 +1309,7 @@
       }
     },
     {
-      "name": "52 Biên nhận nội bộ",
+      "name": "54 Biên nhận nội bộ",
       "request": {
         "method": "GET",
         "header": [
@@ -1283,11 +1323,11 @@
           }
         ],
         "url": "{{baseUrl}}/api/v1/orders/{{orderId}}/receipt",
-        "description": "Biên nhận nội bộ — WAITER / CASHIER / MANAGER / ADMIN\nKhông phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ."
+        "description": "Biên nhận nội bộ — WAITER / CASHIER / MANAGER / ADMIN\nKhông phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ. receivedBy bổ sung thông tin người nhận được lưu khi thu tiền; bản cũ snapshotAvailable=false."
       }
     },
     {
-      "name": "53 Tra kết quả theo Idempotency-Key",
+      "name": "55 Tra kết quả theo Idempotency-Key",
       "request": {
         "method": "GET",
         "header": [
@@ -1331,6 +1371,7 @@
           "if(pm.response.code===200){",
           " const d=pm.response.json();",
           " ['orderId','batchId','visitId','qrToken'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});",
+          " if(d.id && d.receiptNo)pm.collectionVariables.set('paymentId',d.id);",
           " if(d.orderVersion)pm.collectionVariables.set('orderVersion',String(d.orderVersion));",
           " if(d.version)pm.collectionVariables.set('version',String(d.version));",
           " if(d.batches){pm.collectionVariables.set('orderId',d.id);pm.collectionVariables.set('orderVersion',String(d.version));const b=d.batches.at(-1);if(b){pm.collectionVariables.set('batchId',b.id);if(b.items[0]){pm.collectionVariables.set('itemId',b.items[0].id);pm.collectionVariables.set('version',String(b.items[0].version));}}}",

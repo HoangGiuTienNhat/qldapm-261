@@ -1,12 +1,12 @@
-# GET /api/v1/orders/{id}/receipt
+# GET /api/v1/admin/payments/{id}
 
-Biên nhận nội bộ. **Quyền:** WAITER / CASHIER / MANAGER / ADMIN.
+Admin xem đầy đủ đơn và người nhận thanh toán. **Quyền:** ADMIN.
 
 Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.7](../../SSOT/P1.7-thanh-toan-va-hoan-tat.md) sở hữu. Các chuỗi `<...>` trong response là giá trị minh họa cần thay bằng dữ liệu server thật.
 
 ## URL và headers
 
-`GET {{baseUrl}}/api/v1/orders/{{orderId}}/receipt`
+`GET {{baseUrl}}/api/v1/admin/payments/{{paymentId}}`
 
 `Content-Type: application/json`
 
@@ -21,13 +21,20 @@ Không có request body.
 ```json
 {
   "id": "<paymentId>",
+  "orderId": "<orderId>",
   "receiptNo": "BN-C1D2E3F4A5B678",
   "method": "CASH",
   "amountVnd": 190000,
   "tenderedVnd": 200000,
   "transferReference": null,
-  "paidAt": "2026-11-02T15:30:00Z",
+  "paidAt": "2026-11-03T04:15:20Z",
   "changeVnd": 10000,
+  "receivedBy": {
+    "staffId": "10000000-0000-0000-0000-000000000003",
+    "username": "cashier",
+    "displayName": "Nhân viên thu ngân",
+    "snapshotAvailable": true
+  },
   "order": {
     "id": "<orderId>",
     "code": "DH-4C8AA1B2C3D4",
@@ -37,7 +44,7 @@ Không có request body.
     "pickupCode": null,
     "pickupName": null,
     "status": "PAID",
-    "version": 2,
+    "version": 9,
     "totalVnd": 190000,
     "subtotalVnd": 190000,
     "pendingVnd": 0,
@@ -63,7 +70,7 @@ Không có request body.
             "quantity": 2,
             "unitPriceVnd": 95000,
             "note": "Ít cay, không hành",
-            "status": "PLACED",
+            "status": "SERVED",
             "version": 1,
             "statusChangedAt": "2026-11-02T15:01:00Z",
             "createdAt": "2026-11-02T15:01:00Z",
@@ -76,7 +83,7 @@ Không có request body.
 }
 ```
 
-Không phải hóa đơn điện tử pháp lý. Khách cũ đã bị thu hồi session khi đóng lượt nên không đọc receipt bằng cookie guest cũ.
+id là paymentId, không phải orderId. Trả thời điểm UTC, ID/username/họ tên người nhận tại thời điểm ghi nhận, tiền nhận/trả lại/reference và toàn bộ đợt/dòng món, kể cả hủy/từ chối/rút. Dữ liệu chỉ đọc, không thay đổi khi tên nhân viên hoặc menu đổi. 404 nếu payment không tồn tại. Không xóa/khôi phục dữ liệu dev cũ.
 
 ## Cách thử và lỗi cần kiểm tra
 

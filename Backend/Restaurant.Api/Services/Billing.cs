@@ -25,12 +25,43 @@ public partial class ApiService
         var a=Require("CASHIER","MANAGER","ADMIN");var o=await OrderLock(id);CheckVersion(o,b);Rules.Require(o.Status=="AWAITING_PAYMENT","INVALID_TRANSITION","Đơn chưa sẵn sàng thu tiền hoặc đã thanh toán.");
         var amount=Number(b,"amountVnd");var method=Text(b,"method",16);long? tendered=b["tenderedVnd"]==null?null:Number(b,"tenderedVnd");var reference=Optional(b,"transferReference",120);
         Rules.Require(amount==o.TotalVnd,"AMOUNT_MISMATCH","Số tiền phải bằng tổng đã chốt.");Rules.Payment(method,amount,tendered,reference);
-        var payment=new Payment {OrderId=id,ReceiptNo="BN-"+Token()[..14].ToUpperInvariant(),Method=method,AmountVnd=amount,TenderedVnd=tendered,TransferReference=reference,ReceivedByStaffId=a.Id};db.Payments.Add(payment);
-        o.Status="PAID";o.StatusChangedAt=DateTimeOffset.UtcNow;o.Touch();await EndVisit(o,"CLOSED");Audit("PAYMENT_RECORDED","PAYMENT",payment.Id,null,new {payment.OrderId,payment.ReceiptNo,payment.Method,payment.AmountVnd});return new {payment.Id,payment.ReceiptNo,payment.Method,payment.AmountVnd,payment.PaidAt,changeVnd=tendered-amount,orderStatus=o.Status,orderVersion=o.Version};
+        var recipient=await db.StaffUsers.FromSqlInterpolated($"SELECT * FROM staff_users WHERE id={a.Id} FOR SHARE").AsNoTracking().SingleAsync();
+        var payment=new Payment {OrderId=id,ReceiptNo="BN-"+Token()[..14].ToUpperInvariant(),Method=method,AmountVnd=amount,TenderedVnd=tendered,TransferReference=reference,ReceivedByStaffId=a.Id,
+            ReceivedByUsernameSnapshot=recipient.Username,ReceivedByDisplayNameSnapshot=recipient.DisplayName};db.Payments.Add(payment);
+        o.Status="PAID";o.StatusChangedAt=DateTimeOffset.UtcNow;o.Touch();await EndVisit(o,"CLOSED");Audit("PAYMENT_RECORDED","PAYMENT",payment.Id,null,new {payment.OrderId,payment.ReceiptNo,payment.Method,payment.AmountVnd,payment.PaidAt,receivedBy=Recipient(payment)});return new {payment.Id,payment.ReceiptNo,payment.Method,payment.AmountVnd,payment.PaidAt,receivedBy=Recipient(payment),changeVnd=tendered-amount,orderStatus=o.Status,orderVersion=o.Version};
     });
     public async Task<object> Receipt(Guid id)
     {
         Require("WAITER","CASHIER","MANAGER","ADMIN");var p=await db.Payments.AsNoTracking().SingleOrDefaultAsync(p=>p.OrderId==id)??throw new ApiException(404,"RESOURCE_NOT_FOUND","Chưa có biên nhận.");
-        return new {p.Id,p.ReceiptNo,p.Method,p.AmountVnd,p.TenderedVnd,p.TransferReference,p.PaidAt,changeVnd=p.TenderedVnd-p.AmountVnd,order=await OrderRead(id)};
+        return await ReceiptData(p);
+    }
+    private static object Recipient(Payment p)=>new {staffId=p.ReceivedByStaffId,username=p.ReceivedByUsernameSnapshot,displayName=p.ReceivedByDisplayNameSnapshot,snapshotAvailable=p.ReceivedByUsernameSnapshot!=null&&p.ReceivedByDisplayNameSnapshot!=null};
+    private async Task<object> ReceiptData(Payment p)=>new {p.Id,p.OrderId,p.ReceiptNo,p.Method,p.AmountVnd,p.TenderedVnd,p.TransferReference,p.PaidAt,receivedBy=Recipient(p),changeVnd=p.TenderedVnd-p.AmountVnd,order=await OrderRead(p.OrderId)};
+    public async Task<object> PaymentHistory()
+    {
+        Require("ADMIN");var query=Http.Request.Query;
+        var filter=PaymentHistoryQuery.Parse(query["search"],query["method"],query["orderType"],query["receivedByStaffId"],query["fromDate"],query["toDate"],query["page"],query["pageSize"]);
+        var rows=from p in db.Payments.AsNoTracking() join o in db.Orders.AsNoTracking() on p.OrderId equals o.Id
+                 join v in db.Visits.AsNoTracking() on o.VisitId equals (Guid?)v.Id into visits from v in visits.DefaultIfEmpty()
+                 where o.Status=="PAID" select new {Payment=p,Order=o,TableCode=v==null?null:v.TableCodeSnapshot};
+        if(filter.Method!=null)rows=rows.Where(x=>x.Payment.Method==filter.Method);
+        if(filter.OrderType!=null)rows=rows.Where(x=>x.Order.OrderType==filter.OrderType);
+        if(filter.ReceivedByStaffId!=null)rows=rows.Where(x=>x.Payment.ReceivedByStaffId==filter.ReceivedByStaffId);
+        if(filter.PaidFrom.HasValue)rows=rows.Where(x=>x.Payment.PaidAt>=filter.PaidFrom.Value);
+        if(filter.PaidUntil.HasValue)rows=rows.Where(x=>x.Payment.PaidAt<filter.PaidUntil.Value);
+        if(filter.LikePattern is string pattern)rows=rows.Where(x=>EF.Functions.ILike(x.Order.Code,pattern,"\\")||EF.Functions.ILike(x.Payment.ReceiptNo,pattern,"\\")||
+            (x.Payment.ReceivedByUsernameSnapshot!=null&&EF.Functions.ILike(x.Payment.ReceivedByUsernameSnapshot,pattern,"\\"))||(x.Payment.ReceivedByDisplayNameSnapshot!=null&&EF.Functions.ILike(x.Payment.ReceivedByDisplayNameSnapshot,pattern,"\\"))||
+            (x.TableCode!=null&&EF.Functions.ILike(x.TableCode,pattern,"\\"))||(x.Order.PickupCode!=null&&EF.Functions.ILike(x.Order.PickupCode,pattern,"\\"))||
+            (x.Order.PickupName!=null&&EF.Functions.ILike(x.Order.PickupName,pattern,"\\")));
+        var total=await rows.CountAsync();
+        var page=await rows.OrderByDescending(x=>x.Payment.PaidAt).ThenByDescending(x=>x.Payment.Id).Skip((filter.Page-1)*filter.PageSize).Take(filter.PageSize).ToListAsync();
+        return new {items=page.Select(x=>new {paymentId=x.Payment.Id,x.Payment.OrderId,orderCode=x.Order.Code,x.Order.OrderType,tableCode=x.TableCode,x.Order.PickupCode,x.Order.PickupName,x.Order.CreatedAt,
+            x.Payment.ReceiptNo,x.Payment.Method,x.Payment.AmountVnd,x.Payment.TenderedVnd,x.Payment.TransferReference,x.Payment.PaidAt,changeVnd=x.Payment.TenderedVnd-x.Payment.AmountVnd,receivedBy=Recipient(x.Payment)}),
+            page=filter.Page,pageSize=filter.PageSize,totalCount=total,totalPages=(int)Math.Ceiling(total/(double)filter.PageSize)};
+    }
+    public async Task<object> PaymentHistoryDetail(Guid id)
+    {
+        Require("ADMIN");var p=await db.Payments.AsNoTracking().SingleOrDefaultAsync(p=>p.Id==id)??throw new ApiException(404,"RESOURCE_NOT_FOUND","Không tìm thấy giao dịch thanh toán.");
+        return await ReceiptData(p);
     }
 }

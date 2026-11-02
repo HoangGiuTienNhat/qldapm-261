@@ -37,7 +37,7 @@ Các tab thường cùng profile chia sẻ cookie; muốn nhiều tài khoản s
 
 ## API và kiểm thử
 
-- [53 tài liệu API — mỗi endpoint một Markdown](docs/api/README.md).
+- [55 tài liệu API — mỗi endpoint một Markdown](docs/api/README.md).
 - [Hướng dẫn Postman, cookie/CSRF/version và các luồng mẫu](docs/api/POSTMAN.md).
 - [Import Postman collection](docs/api/restaurant.postman_collection.json).
 - [OpenAPI đang chạy](http://localhost:3000/api/v1/openapi.json).
@@ -55,7 +55,7 @@ docker run --rm --network restaurant_ordering_default -e BASE_URL=http://gateway
 python scripts/qr_smoke.py
 ```
 
-Sinh lại docs/collection/OpenAPI khi đổi route: `python scripts/generate_api_docs.py`. Script kiểm catalog khớp53 route thực. Frontend unit test copy URL: `docker build --target tests -t restaurant-ordering-frontend-tests ./Frontend`. Dừng bằng `docker compose stop`, khởi động lại `docker compose start`, cập nhật code bằng `docker compose up -d --build`. Named volumes giữ DB/keyring; không dùng `down -v` nếu muốn giữ dữ liệu.
+Sinh lại docs/collection/OpenAPI khi đổi route: `python scripts/generate_api_docs.py`. Script kiểm catalog khớp55 route thực. Frontend unit test copy URL: `docker build --target tests -t restaurant-ordering-frontend-tests ./Frontend`. Dừng bằng `docker compose stop`, khởi động lại `docker compose start`, cập nhật code bằng `docker compose up -d --build`. Named volumes giữ DB/keyring; không dùng `down -v` nếu muốn giữ dữ liệu.
 
 Backend thực tế: `Restaurant.Api/{Domain,Data,Services}` + `Restaurant.Tests`. Frontend: Next app routes, component UI chung và API helper. Chưa benchmark50 thiết bị/UAT5 người/restore drill; xem ADR-0008 trước khi triển khai ngoài localhost.
 
@@ -85,3 +85,5 @@ Backend thực tế: `Restaurant.Api/{Domain,Data,Services}` + `Restaurant.Tests
 Stack lựa chọn: **C# / ASP.NET Core .NET 10 + EF Core/Npgsql + PostgreSQL 16; React / Next.js App Router / TypeScript; Docker Compose cho toàn bộ môi trường**. Chi tiết lý do và giới hạn bằng chứng nằm trong ADR-0001.
 
 `temp-docs/` là đầu vào lịch sử, không phải đặc tả đang có hiệu lực. Không tạo bản mô tả phân hệ thứ hai ngoài SSOT. ADR ghi cách thực hiện và lý do; quy tắc nghiệp vụ được sở hữu bởi từng SSOT.
+
+Admin có [lịch sử thanh toán](GUIDE/LICH-SU-THANH-TOAN.md) để tra cứu toàn bộ đơn đã chốt, thời điểm và người thu. Smoke riêng: `python scripts/payment_history_smoke.py`.

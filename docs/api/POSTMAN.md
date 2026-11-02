@@ -49,3 +49,9 @@ Login waiter/cashier/manager/admin → POST takeaway-orders (pickupName="Nguyễ
 ## QR cố định mới
 
 Mỗi bàn có một URL cố định qua nhiều lượt. POST guest/join chỉ cần qrToken; bàn chưa mở409, mã QR sai/inactive404. Cùng cookie còn hợp lệ giữ phiên; đóng lượt thu hồi cookie. Guest muốn tham gia lượt mới phải mở/quét lại QR; không đọc được order trước đó. Endpoint xoay join-code đã bỏ; collection hiện có GET QR và không còn biến joinCode. [Hướng dẫn ảnh/copy](../../GUIDE/QR-TAI-BAN.md).
+
+## Tra cứu lịch sử thanh toán admin
+
+Login ADMIN, GET `/api/v1/admin/payments?page=1&pageSize=20&method=CASH&orderType=TAKEAWAY&fromDate=2026-11-03&toDate=2026-11-03`. Bỏ ngày để xem mọi thời điểm; có thể thêm `search` (URL encode) hoặc `receivedByStaffId` UUID. Lấy `items[].paymentId` rồi GET `/api/v1/admin/payments/{paymentId}`. Không nhầm paymentId với orderId. Hai endpoint chỉ ADMIN; không cần CSRF cho GET. PaidAt là ISO timestamp, receivedBy chứa snapshot người thu; chi tiết có đủ batch/item kể cả hủy/từ chối/rút.
+
+`python scripts/payment_history_smoke.py` chạy ca thành công/lỗi, lưu JSON vào docs/verification; tạo tài khoản/món/đơn thử riêng, không xóa dữ liệu hiện có. Sau dọn dữ liệu dev được chủ dự án cho phép, ID trong bằng chứng cũ có thể không còn tra cứu được; tạo lại bằng script khi cần.

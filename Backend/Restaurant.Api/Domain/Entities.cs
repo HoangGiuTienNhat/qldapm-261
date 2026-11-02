@@ -123,8 +123,12 @@ public class Payment
     public long AmountVnd { get; set; }
     public long? TenderedVnd { get; set; }
     public string? TransferReference { get; set; }
-    public DateTimeOffset PaidAt { get; set; } = DateTimeOffset.UtcNow;
+    // PostgreSQL stores microseconds; millisecond precision round-trips identically
+    // in the command response, replay record and subsequent history/receipt reads.
+    public DateTimeOffset PaidAt { get; set; } = DateTimeOffset.FromUnixTimeMilliseconds(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
     public Guid ReceivedByStaffId { get; set; }
+    public string? ReceivedByUsernameSnapshot { get; set; }
+    public string? ReceivedByDisplayNameSnapshot { get; set; }
 }
 public class AuditEvent
 {

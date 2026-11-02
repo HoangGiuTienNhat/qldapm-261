@@ -1,6 +1,6 @@
 # Backend — bản MVP đã triển khai
 
-**C# / ASP.NET Core .NET10**, Npgsql EF10, PostgreSQL16. `Restaurant.Api/Program.cs` có53 endpoint; Domain chứa entity/rules, Data chứa mapping/SQL-first EF migrations/seed, Services chứa use case theo nhóm nghiệp vụ. `Restaurant.Tests` có13 unit test trọng điểm. Dockerfile có target runtime/tests.
+**C# / ASP.NET Core .NET10**, Npgsql EF10, PostgreSQL16. `Restaurant.Api/Program.cs` có55 endpoint; Domain chứa entity/rules, Data chứa mapping/SQL-first EF migrations/seed, Services chứa use case theo nhóm nghiệp vụ. `Restaurant.Tests` có25 unit test trọng điểm. Dockerfile có target runtime/tests.
 
 - [Kiến trúc/cấu trúc mục tiêu](../ADR/0002-kien-truc-va-cau-truc.md).
 - [Schema và ràng buộc đầy đủ](../ADR/0003-database.md).

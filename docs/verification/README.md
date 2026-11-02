@@ -39,3 +39,22 @@ Chưa chạy: benchmark50 thiết bị, UAT5 người, bộ race/concurrency str
 Trong IAB, nút copy báo thành công từ navigator.clipboard, nhưng virtual clipboard của công cụ browser trả rỗng khi đọc/dán nên không ghi nhận OS clipboard E2E là đạt. Logic gửi đúng toàn URL và fallback Ctrl+C được kiểm bằng3 unit test; input/link/ảnh được đối chiếu và PNG giải mã thật. Đây là giới hạn của kiểm chứng automation, không bỏ qua fallback thủ công.
 
 Môi trường helper giải mã ảnh: node24 container tạm, jsqr1.4.0 + pngjs7.0.0; script `scripts/check-qr-image.cjs`. Không xóa image Docker, không dùng prune hoặc reset volume. Mã token trong JSON log HTTP được che; ảnh QR là dữ liệu demo localhost có chủ đích theo yêu cầu tính năng.
+
+## Lịch sử thanh toán — 03/11/2026
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Backend unit trong Docker (`buildx build --target tests --output=type=cacheonly ./Backend`) | 25/25 đạt, gồm 12 ca filter/ngày UTC+07/validation/escape |
+| Frontend unit trong Docker | 5/5 đạt, gồm 2 ca thời gian qua ranh ngày UTC+07 và giá trị không hợp lệ |
+| Smoke riêng lịch sử | [88 HTTP checks đạt](payment-history-result.json): ADMIN-only, toàn bộ 4 đợt, receiver/time, retry, tìm kiếm/lọc/phân trang, snapshot sau đổi hồ sơ/menu |
+| Hồi quy đặt món đến CASH/BANK_TRANSFER/ZERO | [131 HTTP checks đạt](smoke-result.json) |
+| Production frontend/backend | Compose build chạy thành công |
+| Giao diện admin | Tìm chính xác username có `_`, xem snapshot tên cũ sau khi đổi/khóa hồ sơ; chi tiết đủ 4 đợt và ghi chú; [danh sách](payment-history.png), [chi tiết](payment-history-detail.png) |
+
+Bằng chứng và ảnh chụp được tạo trước khi dọn dữ liệu dev theo yêu cầu chủ dự án. Sau dọn, các ID trong kết quả có thể không còn tồn tại. Chạy lại smoke sẽ tạo dữ liệu mới. Chưa kiểm chứng load lớn, concurrency stress hoặc UAT nhiều người; không suy các mục đó đạt từ unit/smoke.
+
+### Dọn dữ liệu local theo yêu cầu chủ dự án
+
+Đã dọn trong một transaction: payments, order_items, order_batches, orders, guest_sessions, visits, audit_events, idempotency_records và 3 món riêng của smoke lịch sử (`HIST-*`). Không đưa thao tác này vào migration hoặc startup. Giữ nguyên 9 tài khoản, mật khẩu, trạng thái và 9 phân quyền; so sánh toàn bộ dữ liệu staff/roles/user_roles trước và sau ngay trong transaction, khác biệt sẽ rollback. Giữ menu/cấu hình bàn và QR cố định để tiếp tục phát triển thuận tiện; không xóa volume hoặc Docker images.
+
+Kiểm tra sau dọn: orders=0, payments=0, visits=0; đăng nhập admin thành công, API staff vẫn trả 9 tài khoản và API lịch sử trả 0 kết quả. [Giao diện sau dọn](payment-history-after-reset.png). Các tài khoản thử được giữ nguyên cùng các tài khoản còn lại theo yêu cầu bảo toàn account.

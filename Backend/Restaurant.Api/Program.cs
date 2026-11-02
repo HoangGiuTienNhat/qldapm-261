@@ -104,6 +104,8 @@ app.MapPost("/api/v1/orders/{id:guid}/cancel",async(Guid id,HttpContext c,ApiSer
 app.MapGet("/api/v1/serving/items",(ApiService s)=>s.Queue(true));
 app.MapPost("/api/v1/order-items/{id:guid}/serve",async(Guid id,HttpContext c,ApiService s)=>await s.ItemAction(id,await ApiService.Body(c),"serve"));
 app.MapGet("/api/v1/checkout/orders",(ApiService s)=>s.OrdersList(true));
+app.MapGet("/api/v1/admin/payments",(ApiService s)=>s.PaymentHistory());
+app.MapGet("/api/v1/admin/payments/{id:guid}",(Guid id,ApiService s)=>s.PaymentHistoryDetail(id));
 app.MapPost("/api/v1/orders/{id:guid}/request-payment",async(Guid id,HttpContext c,ApiService s)=>await s.RequestPayment(id,await ApiService.Body(c)));
 app.MapPost("/api/v1/orders/{id:guid}/reopen",async(Guid id,HttpContext c,ApiService s)=>await s.Reopen(id,await ApiService.Body(c)));
 app.MapPost("/api/v1/orders/{id:guid}/payments",async(Guid id,HttpContext c,ApiService s)=>await s.Pay(id,await ApiService.Body(c)));
