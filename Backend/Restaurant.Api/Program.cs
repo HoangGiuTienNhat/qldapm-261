@@ -23,13 +23,13 @@ builder.Services.AddRateLimiter(o=>
         await context.HttpContext.Response.WriteAsJsonAsync(new {type="about:blank",title="RATE_LIMITED",status=429,code="RATE_LIMITED",detail="Quá nhiều yêu cầu. Vui lòng thử lại sau một phút.",traceId=context.HttpContext.TraceIdentifier},token);
     };
     o.AddPolicy("login",ctx=>RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString()??"local",_=>new(){PermitLimit=10,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
-    o.AddPolicy("join",ctx=>RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString()??"local",_=>new(){PermitLimit=5,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
+    o.AddPolicy("join",ctx=>RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString()??"local",_=>new(){PermitLimit=60,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
 });
 var app=builder.Build();
 if(args.Contains("--migrate"))
 {
     await using var scope=app.Services.CreateAsyncScope();var db=scope.ServiceProvider.GetRequiredService<AppDb>();
-    await db.Database.MigrateAsync();await Seed.Run(db,builder.Configuration);Console.WriteLine("Migration and local demo seed completed.");return;
+    await db.Database.MigrateAsync();await Seed.Run(db,builder.Configuration,scope.ServiceProvider.GetRequiredService<IDataProtectionProvider>());Console.WriteLine("Migration and local demo seed completed.");return;
 }
 app.Use(async(ctx,next)=>
 {
@@ -80,9 +80,9 @@ app.MapGet("/api/v1/tables",(ApiService s)=>s.Tables());
 app.MapPost("/api/v1/tables",async(HttpContext c,ApiService s)=>await s.TableWrite(null,await ApiService.Body(c)));
 app.MapPatch("/api/v1/tables/{id:guid}",async(Guid id,HttpContext c,ApiService s)=>await s.TableWrite(id,await ApiService.Body(c)));
 app.MapPost("/api/v1/tables/{id:guid}/qr/rotate",async(Guid id,HttpContext c,ApiService s)=>await s.QrRotate(id,await ApiService.Body(c)));
+app.MapGet("/api/v1/tables/{id:guid}/qr",(Guid id,ApiService s)=>s.TableQr(id));
 app.MapGet("/api/v1/qr/{token}",(string token,ApiService s)=>s.QrRead(token));
 app.MapPost("/api/v1/tables/{id:guid}/visits",async(Guid id,HttpContext c,ApiService s)=>await s.OpenVisit(id,await ApiService.Body(c)));
-app.MapPost("/api/v1/visits/{id:guid}/join-code/rotate",async(Guid id,HttpContext c,ApiService s)=>await s.JoinRotate(id,await ApiService.Body(c)));
 app.MapPost("/api/v1/guest/join",async(HttpContext c,ApiService s)=>await s.Join(await ApiService.Body(c))).RequireRateLimiting("join");
 app.MapGet("/api/v1/guest/current",(ApiService s)=>s.GuestCurrent());
 app.MapGet("/api/v1/orders",(ApiService s)=>s.OrdersList());

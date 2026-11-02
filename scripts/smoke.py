@@ -20,7 +20,8 @@ class Client:
             with self.opener.open(request,timeout=30) as response: status=response.status; data=json.load(response)
         except urllib.error.HTTPError as error: status=error.code; data=json.load(error)
         if status!=expected: raise AssertionError(f'{method} {path}: expected {expected}, got {status}: {data}')
-        checks.append(f'{method} {path}: {status}')
+        recorded_path='/qr/<redacted>' if path.startswith('/qr/') else path
+        checks.append(f'{method} {recorded_path}: {status}')
         return data
     def login(self,role):return self.call('POST','/auth/login',{'username':role,'password':PASSWORD})
 
@@ -31,12 +32,12 @@ def main():
     food=next(i for i in menu['items'] if i['isAvailable'])
     row={'menuItemId':food['id'],'quantity':2,'observedPriceVnd':food['priceVnd'],'note':'Ít cay, không hành'}
     table=next(t for t in admin.call('GET','/tables')['items'] if not t['visit'] and t['isActive'])
-    qr=admin.call('POST',f"/tables/{table['id']}/qr/rotate",{'expectedVersion':table['version']})
+    qr=waiter.call('GET',f"/tables/{table['id']}/qr")
     visit_key=str(uuid.uuid4())
     visit=waiter.call('POST',f"/tables/{table['id']}/visits",{'partySize':2},visit_key)
     replay=waiter.call('POST',f"/tables/{table['id']}/visits",{'partySize':2},visit_key)
     assert visit==replay,'Open visit replay mismatch'
-    guest.call('POST','/guest/join',{'qrToken':qr['qrToken'],'joinCode':visit['joinCode']})
+    guest.call('POST','/guest/join',{'qrToken':qr['qrToken']})
     oid=visit['orderId']; order=guest.call('GET',f'/orders/{oid}')
     request_key=str(uuid.uuid4());body={'expectedOrderVersion':order['version'],'items':[row]}
     first=guest.call('POST',f'/orders/{oid}/batches',body,request_key)

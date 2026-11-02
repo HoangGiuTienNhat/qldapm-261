@@ -57,6 +57,7 @@ public class RestaurantTable : Mutable
     public short Capacity { get; set; } = 4;
     public bool IsActive { get; set; } = true;
     public byte[] QrTokenHash { get; set; } = [];
+    public byte[]? QrTokenCiphertext { get; set; }
 }
 public class Visit : Mutable
 {
@@ -65,8 +66,6 @@ public class Visit : Mutable
     public string Status { get; set; } = "OPEN";
     public short PartySize { get; set; }
     public Guid OpenedByStaffId { get; set; }
-    public byte[] JoinCodeHmac { get; set; } = [];
-    public int JoinGeneration { get; set; } = 1;
     public DateTimeOffset? EndedAt { get; set; }
     public Guid? EndedByStaffId { get; set; }
 }
@@ -75,7 +74,6 @@ public class GuestSession
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid VisitId { get; set; }
     public byte[] TokenHash { get; set; } = [];
-    public int JoinGeneration { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }

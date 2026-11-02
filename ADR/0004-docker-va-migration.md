@@ -1,5 +1,7 @@
 # ADR-0004 — Docker Compose, migration và dữ liệu bền vững
 
+> Thay đổi QR hiện hành03/11/2026: [ADR-0009](0009-qr-co-dinh-tai-ban.md) thay mã tham gia bằng QR cố định. Những đoạn mô tả joinCode/HMAC/QR chỉ có link bên dưới là lịch sử quyết định trước; xem P1.3 và API docs cho hành vi mới.
+
 > Cập nhật triển khai02/11/2026: bản MVP localhost đã chạy. [ADR-0008](0008-mvp-local-va-quyet-dinh-trien-khai.md) thay thế các lựa chọn/giới hạn khác biệt bên dưới; [API thực thi](../docs/api/README.md) và [trạng thái](../docs/IMPLEMENTATION-STATUS.md) là bằng chứng hiện tại. Phần ghi chưa triển khai ở nội dung gốc mô tả thời điểm thiết kế ban đầu.
 
 Ngày 02/11/2026 · Thiết kế, chưa tạo/chạy Compose, chưa pull image hoặc sửa máy.

@@ -1,6 +1,6 @@
 # Danh mục và quản trị SSOT
 
-Phiên bản hiện hành: **1.1 · 02/11/2026 · đã triển khai MVP localhost**. Các xác nhận trực tiếp của chủ dự án trong chat ngày này đã được tích hợp. Những giả định thiết kế còn lại được đánh dấu tại [ADR-0007](../ADR/0007-truy-vet-va-xac-nhan.md), không coi là phản hồi của khách hàng.
+Phiên bản hiện hành: **1.2 · 03/11/2026 · đã triển khai MVP localhost**. Các xác nhận trực tiếp của chủ dự án trong chat ngày này đã được tích hợp. Những giả định thiết kế còn lại được đánh dấu tại [ADR-0007](../ADR/0007-truy-vet-va-xac-nhan.md), không coi là phản hồi của khách hàng.
 
 ## Một phân hệ, một tài liệu
 
@@ -30,3 +30,5 @@ Hiện bổ sung `Backend/Restaurant.Api/openapi.json` làm hợp đồng giao t
 ## Chuẩn cấu trúc
 
 Mỗi file có nhận diện, bảng mô tả sản phẩm theo mẫu P1.4 gốc, phạm vi, actor, quy tắc BR, luồng, hợp đồng dữ liệu/API, UI/lỗi, tiêu chí QC có cách kiểm tra, phụ thuộc và lịch sử. Trạng thái “đặc tả baseline” không có nghĩa phần mềm đã hoàn thành.
+
+QR hiện hành: [P1.3 QR cố định](P1.3-ban-va-luot-khach.md) và [ADR-0009](../ADR/0009-qr-co-dinh-tai-ban.md) thay mã8 chữ số bằng quét/mở link trực tiếp, có ảnh QR và copy URL.

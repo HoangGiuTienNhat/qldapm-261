@@ -11,6 +11,7 @@ Ngày baseline: 02/11/2026. Trạng thái chung: **lựa chọn thiết kế đ�
 | [0005](0005-api-va-nhat-quan.md) | API, phiên, concurrency, retry, polling | Thiết kế baseline |
 | [0006](0006-implementation-plan.md) | Roadmap, WBS, AC, kiểm thử và cổng hoàn tất | Kế hoạch, chưa thực hiện |
 | [0007](0007-truy-vet-va-xac-nhan.md) | Ma trận nguồn và xử lý điểm mâu thuẫn | Ghi nhận baseline |
+| [0009](0009-qr-co-dinh-tai-ban.md) | QR cố định có ảnh/link/copy, bỏ mã tham gia, migration003 | Đã triển khai |
 | [0008](0008-mvp-local-va-quyet-dinh-trien-khai.md) | Xác nhận1A–7A/ASAP, MVP localhost, cách triển khai và giới hạn thực tế | Đã triển khai |
 
 ADR giải thích **vì sao và thực hiện thế nào**. [SSOT](../SSOT/README.md) là nguồn duy nhất của yêu cầu feature. Bản MVP đã có endpoint; hợp đồng/payload thực tế ở [docs/api](../docs/api/README.md). ADR0001–0007 giữ bối cảnh thiết kế ban đầu; ADR0008 ghi các điểm superseded và giới hạn, [trạng thái triển khai](../docs/IMPLEMENTATION-STATUS.md) ghi việc đã làm.

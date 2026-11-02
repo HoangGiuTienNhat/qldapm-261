@@ -7,5 +7,7 @@
 **/playwright-report/
 **/test-results/
 artifacts/
+**/__pycache__/
+*.pyc
 *.user
 *.log

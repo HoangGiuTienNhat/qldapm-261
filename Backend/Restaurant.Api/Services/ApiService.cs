@@ -18,13 +18,13 @@ public partial class ApiService(AppDb db, IDataProtectionProvider protection, IC
 {
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private readonly IDataProtector protector = protection.CreateProtector("restaurant.idempotency.v1");
+    private readonly IDataProtector qrProtector = protection.CreateProtector("restaurant.table-qr.v1");
     private readonly PasswordHasher<StaffUser> passwords = new();
     public Actor? User { get; private set; }
     public HttpContext Http { get; private set; } = null!;
     private Guid RequestId { get; } = Guid.NewGuid();
     public static byte[] Hash(string value) => SHA256.HashData(Encoding.UTF8.GetBytes(value));
     public static string Token() => Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
-    private byte[] JoinHash(Visit v, string code) => HMACSHA256.HashData(Encoding.UTF8.GetBytes(config["Security:JoinSecret"] ?? throw new InvalidOperationException("Missing join secret")), Encoding.UTF8.GetBytes($"{v.Id}:{v.JoinGeneration}:{code}"));
     public async Task Authenticate(HttpContext ctx)
     {
         Http = ctx;
@@ -43,7 +43,7 @@ public partial class ApiService(AppDb db, IDataProtectionProvider protection, IC
         {
             var h = Hash(guestToken);
             var session = await db.GuestSessions.AsNoTracking().FirstOrDefaultAsync(s => s.TokenHash == h && s.RevokedAt == null && s.ExpiresAt > now);
-            if (session != null && await db.Visits.AnyAsync(v => v.Id == session.VisitId && v.Status == "OPEN" && v.JoinGeneration == session.JoinGeneration))
+            if (session != null && await db.Visits.AnyAsync(v => v.Id == session.VisitId && v.Status == "OPEN"))
                 User = new(session.Id, true, session.VisitId, ["CUSTOMER"], "Khách tại bàn");
         }
         if (User != null) ctx.User = new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, User.Id.ToString())], "session"));

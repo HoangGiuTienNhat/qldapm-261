@@ -1,42 +1,35 @@
-# POST /api/v1/tables/{id}/visits
+# GET /api/v1/tables/{id}/qr
 
-Mở lượt khách. **Quyền:** WAITER / MANAGER / ADMIN.
+Xem lại QR và URL cố định của bàn. **Quyền:** WAITER / MANAGER / ADMIN.
 
 Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](../../SSOT/P1.3-ban-va-luot-khach.md) sở hữu. Các chuỗi `<...>` trong response là giá trị minh họa cần thay bằng dữ liệu server thật.
 
 ## URL và headers
 
-`POST {{baseUrl}}/api/v1/tables/{{tableId}}/visits`
+`GET {{baseUrl}}/api/v1/tables/{{tableId}}/qr`
 
 `Content-Type: application/json`
-
-- `X-CSRF-TOKEN: <token lấy từ GET /api/v1/auth/csrf>`
-- `Idempotency-Key: <UUID mới cho một ý định; retry giữ nguyên>`
 
 - Cookie jar giữ phiên đăng nhập/tham gia. Với request khách, thêm `X-Actor: guest`.
 
 ## Payload đầy đủ cho kịch bản mẫu
 
-```json
-{
-  "partySize": 2
-}
-```
+Không có request body.
 
 ## Response thành công — HTTP 200
 
 ```json
 {
-  "visitId": "<visitId>",
-  "orderId": "<orderId>",
-  "tableCode": "B01",
-  "joinCode": "82649173",
+  "id": "<tableId>",
+  "code": "B01",
   "version": 1,
-  "orderVersion": 1
+  "qrToken": "<token cố định>",
+  "qrPath": "/qr/<token>",
+  "qrUrl": "http://localhost:3000/qr/<token>"
 }
 ```
 
-partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. joinCode trong ví dụ là giả; dùng mã server thật trả về. Retry cùng key trả cùng lượt/mã.
+GET chỉ đọc, không đổi token/version. QR dùng lại qua nhiều lượt và restart. UI sinh ảnh QR từ đúng qrUrl này, có ô URL và nút sao chép. Không cần joinCode. PublicOrigin xác định host/port trong link.
 
 ## Cách thử và lỗi cần kiểm tra
 

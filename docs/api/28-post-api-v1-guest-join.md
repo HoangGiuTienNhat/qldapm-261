@@ -1,6 +1,6 @@
 # POST /api/v1/guest/join
 
-Khách tham gia đúng lượt. **Quyền:** Công khai.
+Khách tham gia lượt đang mở bằng QR cố định. **Quyền:** Công khai.
 
 Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](../../SSOT/P1.3-ban-va-luot-khach.md) sở hữu. Các chuỗi `<...>` trong response là giá trị minh họa cần thay bằng dữ liệu server thật.
 
@@ -19,8 +19,7 @@ Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](.
 
 ```json
 {
-  "qrToken": "{{qrToken}}",
-  "joinCode": "{{joinCode}}"
+  "qrToken": "{{qrToken}}"
 }
 ```
 
@@ -34,7 +33,7 @@ Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](.
 }
 ```
 
-Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 5 lần/phút/IP.
+Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 60 lần/phút/IP. Không nhập mã. Bàn chưa mở trả409 TABLE_NOT_OPEN, QR sai/bàn inactive trả404. Gọi lại bằng cùng cookie hợp lệ giữ cùng phiên/lượt; không tạo order mới.
 
 ## Cách thử và lỗi cần kiểm tra
 

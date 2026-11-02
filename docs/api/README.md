@@ -27,11 +27,11 @@
 | GET | `/api/v1/tables` | [Sơ đồ bàn và lượt đang mở](21-get-api-v1-tables.md) |
 | POST | `/api/v1/tables` | [Thêm bàn](22-post-api-v1-tables.md) |
 | PATCH | `/api/v1/tables/{id}` | [Sửa/ẩn bàn trống](23-patch-api-v1-tables-id.md) |
-| POST | `/api/v1/tables/{id}/qr/rotate` | [Cấp/xoay link QR](24-post-api-v1-tables-id-qr-rotate.md) |
-| GET | `/api/v1/qr/{token}` | [Đọc thông tin QR công khai](25-get-api-v1-qr-token.md) |
-| POST | `/api/v1/tables/{id}/visits` | [Mở lượt khách](26-post-api-v1-tables-id-visits.md) |
-| POST | `/api/v1/visits/{id}/join-code/rotate` | [Cấp lại mã tham gia](27-post-api-v1-visits-id-join-code-rotate.md) |
-| POST | `/api/v1/guest/join` | [Khách tham gia đúng lượt](28-post-api-v1-guest-join.md) |
+| POST | `/api/v1/tables/{id}/qr/rotate` | [Thay QR cố định khi cần vô hiệu link cũ](24-post-api-v1-tables-id-qr-rotate.md) |
+| GET | `/api/v1/tables/{id}/qr` | [Xem lại QR và URL cố định của bàn](25-get-api-v1-tables-id-qr.md) |
+| GET | `/api/v1/qr/{token}` | [Đọc thông tin QR công khai](26-get-api-v1-qr-token.md) |
+| POST | `/api/v1/tables/{id}/visits` | [Mở lượt khách](27-post-api-v1-tables-id-visits.md) |
+| POST | `/api/v1/guest/join` | [Khách tham gia lượt đang mở bằng QR cố định](28-post-api-v1-guest-join.md) |
 | GET | `/api/v1/guest/current` | [Lượt hiện tại của khách](29-get-api-v1-guest-current.md) |
 | GET | `/api/v1/orders` | [Danh sách đơn](30-get-api-v1-orders.md) |
 | GET | `/api/v1/orders/{id}` | [Chi tiết đơn và mọi đợt gọi](31-get-api-v1-orders-id.md) |

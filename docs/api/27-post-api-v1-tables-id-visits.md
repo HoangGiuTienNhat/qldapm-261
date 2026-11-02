@@ -1,12 +1,12 @@
-# POST /api/v1/visits/{id}/join-code/rotate
+# POST /api/v1/tables/{id}/visits
 
-Cấp lại mã tham gia. **Quyền:** WAITER / MANAGER / ADMIN.
+Mở lượt khách. **Quyền:** WAITER / MANAGER / ADMIN.
 
 Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](../../SSOT/P1.3-ban-va-luot-khach.md) sở hữu. Các chuỗi `<...>` trong response là giá trị minh họa cần thay bằng dữ liệu server thật.
 
 ## URL và headers
 
-`POST {{baseUrl}}/api/v1/visits/{{visitId}}/join-code/rotate`
+`POST {{baseUrl}}/api/v1/tables/{{tableId}}/visits`
 
 `Content-Type: application/json`
 
@@ -19,7 +19,7 @@ Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](.
 
 ```json
 {
-  "expectedVersion": 1
+  "partySize": 2
 }
 ```
 
@@ -28,12 +28,14 @@ Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](.
 ```json
 {
   "visitId": "<visitId>",
-  "joinCode": "73182946",
-  "version": 2
+  "orderId": "<orderId>",
+  "tableCode": "B01",
+  "version": 1,
+  "orderVersion": 1
 }
 ```
 
-Thu hồi mọi guest session cũ; khách cần nhập mã mới. expectedVersion là version visit, không order.
+partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. Không cần mã tham gia. Retry cùng key trả cùng lượt/order.
 
 ## Cách thử và lỗi cần kiểm tra
 

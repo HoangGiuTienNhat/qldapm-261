@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.DataProtection;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.Api.Domain;
 using Restaurant.Api.Services;
@@ -6,7 +8,7 @@ using Restaurant.Api.Services;
 namespace Restaurant.Api.Data;
 public static class Seed
 {
-    public static async Task Run(AppDb db,IConfiguration config)
+    public static async Task Run(AppDb db,IConfiguration config,IDataProtectionProvider protection)
     {
         var password=config["Demo:Password"]??throw new InvalidOperationException("Set Demo__Password for local seed.");
         if(password.Length<12)throw new InvalidOperationException("Demo password must have at least 12 characters.");
@@ -51,7 +53,18 @@ public static class Seed
             var id=Stable("30000000",i+1);if(await db.MenuItems.AnyAsync(m=>m.Id==id))continue;var d=dishes[i];
             db.MenuItems.Add(new(){Id=id,CategoryId=Stable("20000000",i/5+1),Code="MON-"+(i+1).ToString("D3"),Name=d.Name,PriceVnd=d.Price,Description=d.Description,IsAvailable=i!=14});
         }
-        for(var i=1;i<=30;i++){var id=Stable("40000000",i);if(!await db.RestaurantTables.AnyAsync(t=>t.Id==id))db.RestaurantTables.Add(new(){Id=id,Code="B"+i.ToString("D2"),Capacity=(short)(i%5==0?6:4),QrTokenHash=ApiService.Hash(ApiService.Token())});}
+        var qrProtector=protection.CreateProtector("restaurant.table-qr.v1");
+        for(var i=1;i<=30;i++)
+        {
+            var id=Stable("40000000",i);if(await db.RestaurantTables.AnyAsync(t=>t.Id==id))continue;
+            var raw=ApiService.Token();db.RestaurantTables.Add(new(){Id=id,Code="B"+i.ToString("D2"),Capacity=(short)(i%5==0?6:4),QrTokenHash=ApiService.Hash(raw),QrTokenCiphertext=qrProtector.Protect(Encoding.UTF8.GetBytes(raw))});
+        }
+        // One-time upgrade: legacy hashes cannot be reversed. Never rotate an initialized QR.
+        foreach(var table in await db.RestaurantTables.Where(t=>t.QrTokenCiphertext==null).ToListAsync())
+        {
+            var raw=ApiService.Token();table.QrTokenHash=ApiService.Hash(raw);table.QrTokenCiphertext=qrProtector.Protect(Encoding.UTF8.GetBytes(raw));table.Touch();
+            db.AuditEvents.Add(new(){ActorKind="SYSTEM",Action="QR_INITIALIZED",TargetType="TABLE",TargetId=table.Id,AfterData="{\"fixedQr\":true}",RequestId=Guid.NewGuid(),CorrelationId=Guid.NewGuid()});
+        }
         await db.SaveChangesAsync();await tx.CommitAsync();
     }
     public static Guid Stable(string prefix,int index)=>Guid.Parse($"{prefix}-0000-0000-0000-{index:D12}");

@@ -1005,8 +1005,8 @@
     },
     "/api/v1/tables/{id}/qr/rotate": {
       "post": {
-        "summary": "Cấp/xoay link QR",
-        "description": "MANAGER / ADMIN; QR token chỉ định danh bàn, không cấp quyền đặt món. Mở qrUrl trong cửa sổ ẩn danh rồi nhập joinCode.",
+        "summary": "Thay QR cố định khi cần vô hiệu link cũ",
+        "description": "MANAGER / ADMIN; Chỉ thay khi cần vô hiệu QR/link đã in. Muốn xem lại QR hiện tại, dùng GET tables/{id}/qr; không gọi rotate mỗi lần xem. URL đầy đủ dùng PublicOrigin. Thay QR không thu hồi guest session đã tham gia đúng lượt; đóng lượt vẫn thu hồi như cũ.",
         "parameters": [
           {
             "name": "id",
@@ -1028,7 +1028,8 @@
                   "code": "B01",
                   "version": 2,
                   "qrToken": "<token thực server sinh>",
-                  "qrUrl": "/qr/<token>"
+                  "qrPath": "/qr/<token>",
+                  "qrUrl": "http://localhost:3000/qr/<token>"
                 }
               }
             }
@@ -1051,6 +1052,46 @@
                 "type": "object"
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/tables/{id}/qr": {
+      "get": {
+        "summary": "Xem lại QR và URL cố định của bàn",
+        "description": "WAITER / MANAGER / ADMIN; GET chỉ đọc, không đổi token/version. QR dùng lại qua nhiều lượt và restart. UI sinh ảnh QR từ đúng qrUrl này, có ô URL và nút sao chép. Không cần joinCode. PublicOrigin xác định host/port trong link.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công; example phản ánh shape, ID động cần thay.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "<tableId>",
+                  "code": "B01",
+                  "version": 1,
+                  "qrToken": "<token cố định>",
+                  "qrPath": "/qr/<token>",
+                  "qrUrl": "http://localhost:3000/qr/<token>"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business/version conflict"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         }
       }
@@ -1093,7 +1134,7 @@
     "/api/v1/tables/{id}/visits": {
       "post": {
         "summary": "Mở lượt khách",
-        "description": "WAITER / MANAGER / ADMIN; partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. joinCode trong ví dụ là giả; dùng mã server thật trả về. Retry cùng key trả cùng lượt/mã.",
+        "description": "WAITER / MANAGER / ADMIN; partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. Không cần mã tham gia. Retry cùng key trả cùng lượt/order.",
         "parameters": [
           {
             "name": "id",
@@ -1114,7 +1155,6 @@
                   "visitId": "<visitId>",
                   "orderId": "<orderId>",
                   "tableCode": "B01",
-                  "joinCode": "82649173",
                   "version": 1,
                   "orderVersion": 1
                 }
@@ -1143,60 +1183,10 @@
         }
       }
     },
-    "/api/v1/visits/{id}/join-code/rotate": {
-      "post": {
-        "summary": "Cấp lại mã tham gia",
-        "description": "WAITER / MANAGER / ADMIN; Thu hồi mọi guest session cũ; khách cần nhập mã mới. expectedVersion là version visit, không order.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Thành công; example phản ánh shape, ID động cần thay.",
-            "content": {
-              "application/json": {
-                "example": {
-                  "visitId": "<visitId>",
-                  "joinCode": "73182946",
-                  "version": 2
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Business/version conflict"
-          },
-          "422": {
-            "description": "Validation failed"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "expectedVersion": 1
-              },
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/guest/join": {
       "post": {
-        "summary": "Khách tham gia đúng lượt",
-        "description": "Công khai; Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 5 lần/phút/IP.",
+        "summary": "Khách tham gia lượt đang mở bằng QR cố định",
+        "description": "Công khai; Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 60 lần/phút/IP. Không nhập mã. Bàn chưa mở trả409 TABLE_NOT_OPEN, QR sai/bàn inactive trả404. Gọi lại bằng cùng cookie hợp lệ giữ cùng phiên/lượt; không tạo order mới.",
         "parameters": [],
         "responses": {
           "200": {
@@ -1223,8 +1213,7 @@
           "content": {
             "application/json": {
               "example": {
-                "qrToken": "{{qrToken}}",
-                "joinCode": "{{joinCode}}"
+                "qrToken": "{{qrToken}}"
               },
               "schema": {
                 "type": "object"

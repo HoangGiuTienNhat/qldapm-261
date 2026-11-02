@@ -1,5 +1,7 @@
 # ADR-0008 — MVP localhost và triển khai thực tế
 
+> Thay đổi QR hiện hành03/11/2026: [ADR-0009](0009-qr-co-dinh-tai-ban.md) thay mã tham gia bằng QR cố định. Những đoạn mô tả joinCode/HMAC/QR chỉ có link bên dưới là lịch sử quyết định trước; xem P1.3 và API docs cho hành vi mới.
+
 02/11/2026 · **Đã triển khai MVP local**. Thay thế các lựa chọn khác biệt trong ADR-0001/0002/0004/0006; nghiệp vụ vẫn thuộc SSOT.
 
 ## Xác nhận mới từ chủ dự án

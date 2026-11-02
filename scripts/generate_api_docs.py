@@ -36,11 +36,11 @@ add('PATCH','/api/v1/menu-items/{id}/availability','Bật/tắt còn món','KITC
 add('GET','/api/v1/tables','Sơ đồ bàn và lượt đang mở','Nhân viên',None,{'items':[{'id':'40000000-0000-0000-0000-000000000001','code':'B01','capacity':4,'isActive':True,'version':1,'visit':None}]},'P1.3','Bàn có khách: visit={id,partySize,version,orderId}. Không trả QR hash, joinCode hoặc join HMAC.')
 add('POST','/api/v1/tables','Thêm bàn','MANAGER / ADMIN',{'code':'B31','capacity':4,'isActive':True},{'id':'<tableId>','code':'B31','capacity':4,'isActive':True,'version':1},'P1.3')
 add('PATCH','/api/v1/tables/{id}','Sửa/ẩn bàn trống','MANAGER / ADMIN',{**V,'code':'B01','capacity':6,'isActive':True},{'id':'<tableId>','code':'B01','capacity':6,'isActive':True,'version':2},'P1.3','Không sửa bàn đang có lượt OPEN.')
-add('POST','/api/v1/tables/{id}/qr/rotate','Cấp/xoay link QR','MANAGER / ADMIN',V,{'id':'<tableId>','code':'B01','version':2,'qrToken':'<token thực server sinh>','qrUrl':'/qr/<token>'},'P1.3','QR token chỉ định danh bàn, không cấp quyền đặt món. Mở qrUrl trong cửa sổ ẩn danh rồi nhập joinCode.')
+add('POST','/api/v1/tables/{id}/qr/rotate','Thay QR cố định khi cần vô hiệu link cũ','MANAGER / ADMIN',V,{'id':'<tableId>','code':'B01','version':2,'qrToken':'<token thực server sinh>','qrPath':'/qr/<token>','qrUrl':'http://localhost:3000/qr/<token>'},'P1.3','Chỉ thay khi cần vô hiệu QR/link đã in. Muốn xem lại QR hiện tại, dùng GET tables/{id}/qr; không gọi rotate mỗi lần xem. URL đầy đủ dùng PublicOrigin. Thay QR không thu hồi guest session đã tham gia đúng lượt; đóng lượt vẫn thu hồi như cũ.')
+add('GET','/api/v1/tables/{id}/qr','Xem lại QR và URL cố định của bàn','WAITER / MANAGER / ADMIN',None,{'id':'<tableId>','code':'B01','version':1,'qrToken':'<token cố định>','qrPath':'/qr/<token>','qrUrl':'http://localhost:3000/qr/<token>'},'P1.3','GET chỉ đọc, không đổi token/version. QR dùng lại qua nhiều lượt và restart. UI sinh ảnh QR từ đúng qrUrl này, có ô URL và nút sao chép. Không cần joinCode. PublicOrigin xác định host/port trong link.')
 add('GET','/api/v1/qr/{token}','Đọc thông tin QR công khai','Công khai',None,{'tableCode':'B01','hasOpenVisit':True},'P1.3')
-add('POST','/api/v1/tables/{id}/visits','Mở lượt khách','WAITER / MANAGER / ADMIN',{'partySize':2},{'visitId':'<visitId>','orderId':'<orderId>','tableCode':'B01','joinCode':'82649173','version':1,'orderVersion':1},'P1.3','partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. joinCode trong ví dụ là giả; dùng mã server thật trả về. Retry cùng key trả cùng lượt/mã.')
-add('POST','/api/v1/visits/{id}/join-code/rotate','Cấp lại mã tham gia','WAITER / MANAGER / ADMIN',V,{'visitId':'<visitId>','joinCode':'73182946','version':2},'P1.3','Thu hồi mọi guest session cũ; khách cần nhập mã mới. expectedVersion là version visit, không order.')
-add('POST','/api/v1/guest/join','Khách tham gia đúng lượt','Công khai',{'qrToken':'{{qrToken}}','joinCode':'{{joinCode}}'},{'visitId':'<visitId>','orderId':'<orderId>','tableCode':'B01'},'P1.3','Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 5 lần/phút/IP.')
+add('POST','/api/v1/tables/{id}/visits','Mở lượt khách','WAITER / MANAGER / ADMIN',{'partySize':2},{'visitId':'<visitId>','orderId':'<orderId>','tableCode':'B01','version':1,'orderVersion':1},'P1.3','partySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. Không cần mã tham gia. Retry cùng key trả cùng lượt/order.')
+add('POST','/api/v1/guest/join','Khách tham gia lượt đang mở bằng QR cố định','Công khai',{'qrToken':'{{qrToken}}'},{'visitId':'<visitId>','orderId':'<orderId>','tableCode':'B01'},'P1.3','Lưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 60 lần/phút/IP. Không nhập mã. Bàn chưa mở trả409 TABLE_NOT_OPEN, QR sai/bàn inactive trả404. Gọi lại bằng cùng cookie hợp lệ giữ cùng phiên/lượt; không tạo order mới.')
 add('GET','/api/v1/guest/current','Lượt hiện tại của khách','CUSTOMER + X-Actor: guest',None,{'visitId':'<visitId>','orderId':'<orderId>','tableCode':'B01'},'P1.3')
 add('GET','/api/v1/orders','Danh sách đơn','Nhân viên',None,{'items':[{'id':'<orderId>','code':'DH-4C8AA1B2C3D4','orderType':'DINE_IN','status':'SERVING','version':1,'tableCode':'B01','pickupCode':None,'pickupName':None,'totalVnd':None,'createdAt':'2026-11-02T15:00:00Z'}]},'P1.4','Query status=PAID hoặc CANCELLED để xem lịch sử; mặc định SERVING/AWAITING_PAYMENT. Bản local trả tối đa 200 đơn gần nhất, chưa cursor pagination.')
 ORDER={'id':'<orderId>','code':'DH-4C8AA1B2C3D4','orderType':'DINE_IN','tableCode':'B01','visitId':'<visitId>','pickupCode':None,'pickupName':None,'status':'SERVING','version':2,'totalVnd':None,'subtotalVnd':190000,'pendingVnd':0,'createdAt':'2026-11-02T15:00:00Z','batches':[{'id':'<batchId>','sequenceNo':1,'status':'APPROVED','version':1,'createdAt':'2026-11-02T15:01:00Z','decisionReason':None,'reviewedAt':None,'eligibleAt':'2026-11-02T15:01:00Z','submittedByStaffId':None,'items':[{'id':'<itemId>','batchId':'<batchId>','menuItemId':ROW['menuItemId'],'menuCodeSnapshot':'MON-006','menuNameSnapshot':'Cơm chiên hải sản','quantity':2,'unitPriceVnd':95000,'note':'Ít cay, không hành','status':'PLACED','version':1,'statusChangedAt':'2026-11-02T15:01:00Z','createdAt':'2026-11-02T15:01:00Z','updatedAt':'2026-11-02T15:01:00Z'}]}]}
@@ -71,7 +71,7 @@ add('GET','/api/v1/openapi.json','Hợp đồng OpenAPI','Công khai',None,{'ope
 routes=[(method.upper(),re.sub(r':guid','',path)) for method,path in re.findall(r'app.Map(Get|Post|Put|Patch|Delete)\("([^\"]+)"',(ROOT/'Backend/Restaurant.Api/Program.cs').read_text(encoding='utf-8'))]
 assert set(routes)==set(SPEC),f'Route/catalog mismatch: undocumented={set(routes)-set(SPEC)}, stale={set(SPEC)-set(routes)}'
 ssot_files={p.name.split('-')[0]:p.name for p in (ROOT/'SSOT').glob('P1.*.md')}
-collection={'info':{'name':'Bếp Nhà — Restaurant Ordering','schema':'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},'variable':[{'key':k,'value':v} for k,v in {'baseUrl':'http://localhost:3000','actor':'staff','orderId':'','batchId':'','itemId':'','visitId':'','tableId':'40000000-0000-0000-0000-000000000001','menuItemId':ROW['menuItemId'],'categoryId':MENU['categoryId'],'staffId':'10000000-0000-0000-0000-000000000001','qrToken':'','joinCode':'','version':'1','orderVersion':'1','retryKey':''}.items()], 'item':[]}
+collection={'info':{'name':'Bếp Nhà — Restaurant Ordering','schema':'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},'variable':[{'key':k,'value':v} for k,v in {'baseUrl':'http://localhost:3000','actor':'staff','orderId':'','batchId':'','itemId':'','visitId':'','tableId':'40000000-0000-0000-0000-000000000001','menuItemId':ROW['menuItemId'],'categoryId':MENU['categoryId'],'staffId':'10000000-0000-0000-0000-000000000001','qrToken':'','version':'1','orderVersion':'1','retryKey':''}.items()], 'item':[]}
 pre="""if (pm.request.method !== 'GET') {
  const actor = pm.collectionVariables.get('actor') || 'staff';
  pm.sendRequest({url:pm.collectionVariables.get('baseUrl')+'/api/v1/auth/csrf',method:'GET',header:{'X-Actor':actor}},(err,res)=>{
@@ -83,7 +83,7 @@ pre="""if (pm.request.method !== 'GET') {
 post="""pm.test('Success or documented business error',()=>pm.expect([200,401,403,404,409,410,422,429]).to.include(pm.response.code));
 if(pm.response.code===200){
  const d=pm.response.json();
- ['orderId','batchId','visitId','qrToken','joinCode'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});
+ ['orderId','batchId','visitId','qrToken'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});
  if(d.orderVersion)pm.collectionVariables.set('orderVersion',String(d.orderVersion));
  if(d.version)pm.collectionVariables.set('version',String(d.version));
  if(d.batches){pm.collectionVariables.set('orderId',d.id);pm.collectionVariables.set('orderVersion',String(d.version));const b=d.batches.at(-1);if(b){pm.collectionVariables.set('batchId',b.id);if(b.items[0]){pm.collectionVariables.set('itemId',b.items[0].id);pm.collectionVariables.set('version',String(b.items[0].version));}}}
@@ -98,12 +98,14 @@ def path_variable(path):
     if '/tables/' in path:return 'tableId'
     if '/staff/' in path:return 'staffId'
     return 'orderId'
+generated_names=set()
 index=['# Danh mục API thực thi','',f'**{len(routes)} endpoint** · Base URL: `http://localhost:3000` · [Hướng dẫn Postman](POSTMAN.md).','', '| Method | API | Tài liệu |','|---|---|---|']
 openapi={'openapi':'3.0.3','info':{'title':'Restaurant Ordering API','version':'1.0.0'},'servers':[{'url':'http://localhost:3000'}],'paths':{}}
 for n,(method,path) in enumerate(routes,1):
     title,role,body,response,ssot,notes=SPEC[(method,path)]
     slug=f'{n:02d}-{method.lower()}-'+re.sub(r'[^a-z0-9]+','-',path.lower()).strip('-')
     filename=slug+'.md'
+    generated_names.add(filename)
     example_path=path.replace('{id}','{{'+path_variable(path)+'}}').replace('{token}','{{qrToken}}').replace('{key}','{{requestKey}}')
     source=f'[SSOT {ssot}](../../SSOT/{ssot_files[ssot]})' if ssot else '[Quy ước API](../../ADR/0005-api-va-nhat-quan.md)'
     payload='Không có request body.' if body is None else '```json\n'+json.dumps(body,ensure_ascii=False,indent=2)+'\n```'
@@ -156,6 +158,9 @@ Các lỗi chung: 400 JSON/key sai; 401 hết phiên; 403 sai quyền/CSRF; 404 
     operation={'summary':title,'description':role+'; '+notes,'parameters':parameters,'responses':{'200':{'description':'Thành công; example phản ánh shape, ID động cần thay.','content':{'application/json':{'example':response}}},'409':{'description':'Business/version conflict'},'422':{'description':'Validation failed'}}}
     if body is not None:operation['requestBody']={'required':True,'content':{'application/json':{'example':body,'schema':{'type':'object'}}}}
     openapi['paths'].setdefault(path,{})[method.lower()]=operation
+for obsolete in OUT.glob('[0-9][0-9]-*.md'):
+    if obsolete.name not in generated_names and 'Hợp đồng test của endpoint đã implement' in obsolete.read_text(encoding='utf-8'):
+        obsolete.unlink()
 (OUT/'README.md').write_text('\n'.join(index)+'\n',encoding='utf-8')
 (OUT/'restaurant.postman_collection.json').write_text(json.dumps(collection,ensure_ascii=False,indent=2),encoding='utf-8')
 (ROOT/'Backend/Restaurant.Api/openapi.json').write_text(json.dumps(openapi,ensure_ascii=False,indent=2),encoding='utf-8')

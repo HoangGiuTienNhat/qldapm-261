@@ -6,7 +6,7 @@
 |---|---|---|
 | 1 | Compose/PG16; backend/frontend đúng folder; migration/seed trước API | Đã chạy |
 | 2 | Login, cookie/CSRF/RBAC, tài khoản nội bộ, menu/danh mục/còn-hết | Đã triển khai |
-| 3 | Bàn/lượt/QR link/mã tham gia, một order/lượt, takeaway không bàn | Đã triển khai, smoke đạt |
+| 3 | Bàn/lượt/QR cố định có ảnh/link/copy, không nhập mã, một order/lượt, takeaway không bàn | Đã triển khai, smoke đạt |
 | 4 | Đợt đầu tự duyệt, gọi thêm chờ, approve/reject/withdraw, sửa/hủy/retry | Đã triển khai, smoke đạt |
 | 5 | KDS ACCEPTED→PREPARING→READY; phục vụ SERVED; polling | Đã triển khai, smoke đạt |
 | 6 | Chốt tiền, CASH/BANK_TRANSFER/ZERO, receipt, đóng lượt/revoke khách | Đã triển khai, smoke đạt |
@@ -15,3 +15,5 @@
 | Nghiệm thu mở rộng | Load50, concurrency stress, UAT5 người, restore drill | Chưa thực hiện |
 
 Done bản local: Compose chạy được, luồng chính qua HTTP thật đạt, unit quy tắc đạt, payload và hướng dẫn thử rõ. Mục tiêu nghiệm thu rộng ở ADR-0006 giữ làm backlog; 325giờ là ước lượng nguồn ban đầu, không phải thời gian phải chờ để có bản chạy. Các QC chưa được kiểm tra riêng không tự xem là đạt chỉ vì đã có code.
+
+Cập nhật03/11/2026: migration003, QR cố định, 72 HTTP checks riêng QR, 131 checks luồng chính và3 frontend unit tests copy/fallback. [ADR-0009](../ADR/0009-qr-co-dinh-tai-ban.md).

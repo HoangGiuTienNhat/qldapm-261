@@ -1,6 +1,6 @@
 # ADR-0003 — Thiết kế PostgreSQL và từ điển dữ liệu
 
-> Cập nhật triển khai02/11/2026: bản MVP localhost đã chạy. [ADR-0008](0008-mvp-local-va-quyet-dinh-trien-khai.md) thay thế các lựa chọn/giới hạn khác biệt bên dưới; [API thực thi](../docs/api/README.md) và [trạng thái](../docs/IMPLEMENTATION-STATUS.md) là bằng chứng hiện tại. Phần ghi chưa triển khai ở nội dung gốc mô tả thời điểm thiết kế ban đầu.
+> Cập nhật triển khai02/11/2026: bản MVP localhost đã chạy. [ADR-0008](0008-mvp-local-va-quyet-dinh-trien-khai.md) và [ADR-0009](0009-qr-co-dinh-tai-ban.md) thay thế các lựa chọn/giới hạn khác biệt bên dưới; [API thực thi](../docs/api/README.md) và [trạng thái](../docs/IMPLEMENTATION-STATUS.md) là bằng chứng hiện tại. Phần ghi chưa triển khai ở nội dung gốc mô tả thời điểm thiết kế ban đầu.
 
 Ngày 02/11/2026 · Thiết kế baseline v1.0 · **Chưa tạo database hoặc migration thực thi**. Đây là nguồn schema duy nhất ở giai đoạn thiết kế; khi triển khai, EF migrations/snapshot thể hiện schema thực và phải đồng bộ tài liệu này trong cùng PR.
 
@@ -119,8 +119,9 @@ Index `(category_id,is_active,id)`, có thể thêm tìm kiếm tên khi đo đ�
 | capacity | smallint NN | CHECK BETWEEN 1 AND 30 (giới hạn MVP có thể đổi qua migration) |
 | is_active | boolean NN DEFAULT true | Không mở lượt mới nếu false |
 | qr_token_hash | bytea NN UQ | SHA-256 token ≥256 bit, length=32 |
+| qr_token_ciphertext | bytea NULL | Token mã hóa Data Protection để xem lại QR cố định; NULL chỉ cho nâng cấp trước seed backfill; nếu có thì length>0 |
 
-QR raw chỉ hiển thị khi cấp/xoay, in lại phải xoay nếu không giữ bản QR. Không stored occupied/table_status. Không đổi code khi đang có lượt OPEN; bàn đã có lịch sử không xóa. Không bắt capacity mới nhỏ hơn party_size lượt mở.
+QR được xem lại qua API nhân viên từ ciphertext, không cần xoay để in lại. Seed backfill một lần cho bàn cũ chưa có ciphertext; các lần sau giữ nguyên. Keyring auth_keys phải giữ cùng DB. Không stored occupied/table_status. Không đổi code khi đang có lượt OPEN; bàn đã có lịch sử không xóa. Không bắt capacity mới nhỏ hơn party_size lượt mở.
 
 ### 3.8. `visits` — M · P1.3
 
@@ -131,12 +132,10 @@ QR raw chỉ hiển thị khi cấp/xoay, in lại phải xoay nếu không gi�
 | status | varchar(12) NN | CHECK IN ('OPEN','CLOSED','CANCELLED') |
 | party_size | smallint NN | CHECK 1..30; service/trigger kiểm ≤ table.capacity lúc mở |
 | opened_by_staff_id | uuid NN FK staff_users(id) | Người mở |
-| join_code_hmac | bytea NN | length=32, HMAC-SHA256(visitId + generation + mã) với secret ngoài DB |
-| join_generation | integer NN DEFAULT 1 | CHECK >0; tăng khi xoay mã |
 | ended_at | timestamptz NULL | OPEN ⇔ NULL; CLOSED/CANCELLED ⇔ NN và ≥created_at |
 | ended_by_staff_id | uuid NULL FK staff_users(id) | OPEN ⇔ NULL; kết thúc ⇔ NN |
 
-Unique partial `(table_id) WHERE status='OPEN'` là ràng buộc chống hai lượt mở. join HMAC giữ để audit sau đóng nhưng không còn dùng được; không lưu mã rõ. Mở lượt/QR không cập nhật created_at của bàn.
+Unique partial `(table_id) WHERE status='OPEN'` là ràng buộc chống hai lượt mở. Không còn mã tham gia/HMAC/generation từ migration003; guest chỉ gắn visit và revoke/expiry. Mở lượt/QR không cập nhật created_at của bàn.
 
 ### 3.9. `guest_sessions` — P1.3
 
@@ -145,12 +144,11 @@ Unique partial `(table_id) WHERE status='OPEN'` là ràng buộc chống hai lư
 | id | uuid PK NN | App sinh |
 | visit_id | uuid NN FK visits(id) | Phạm vi quyền |
 | token_hash | bytea NN UQ | SHA-256 token ≥256 bit, length=32 |
-| join_generation | integer NN | CHECK >0; phải bằng visit lúc cấp |
 | created_at | timestamptz NN DEFAULT now() | Lúc tham gia |
 | expires_at | timestamptz NN | >created_at; 12 giờ |
 | revoked_at | timestamptz NULL | NULL hoặc ≥created_at |
 
-Index `(visit_id) WHERE revoked_at IS NULL`, `(expires_at)`. Request kiểm visit vẫn OPEN + generation bằng nhau + chưa hết hạn/chưa thu hồi. Không lưu thiết bị fingerprint, tên khách hay IP lâu dài. Hết hạn có thể nhập lại mã nếu visit còn mở; cấp session mới không mở order mới.
+Index `(visit_id) WHERE revoked_at IS NULL`, `(expires_at)`. Request kiểm visit vẫn OPEN + chưa hết hạn/chưa thu hồi. Khách join bằng QR cố định, không mã nhập. Không lưu thiết bị fingerprint, tên khách hay IP lâu dài. Hết hạn có thể nhập lại mã nếu visit còn mở; cấp session mới không mở order mới.
 
 ### 3.10. `orders` — M · P1.4/P1.7
 
@@ -238,7 +236,7 @@ ZERO ⇔ amount=0, tendered và reference NULL. CASH/BANK_TRANSFER ⇔ amount>0.
 | request_id | uuid NN | Tương quan request, do server cấp |
 | correlation_id | uuid NN | Nhóm event cùng transaction/use case |
 
-SYSTEM có cả hai actor NULL, chỉ seed/migration, không request người dùng. before/after nếu NN phải JSON object. Không lưu password_hash/token/hash mã tham gia/session cookie/payment secret trong audit. Audit chuyển state chứa `status`, `version`, quantity/note nếu đổi; có thể truy xuất đầy đủ mốc accepted/ready/served.
+SYSTEM có cả hai actor NULL, chỉ seed/migration, không request người dùng. before/after nếu NN phải JSON object. Không lưu password_hash/token/hash QR ciphertext/session cookie/payment secret trong audit. Audit chuyển state chứa `status`, `version`, quantity/note nếu đổi; có thể truy xuất đầy đủ mốc accepted/ready/served.
 
 Index `(target_type,target_id,occurred_at,id)`, `(correlation_id)`, `(action,occurred_at,id)` cho vùng thay đổi KDS. App role chỉ INSERT/SELECT; không UPDATE/DELETE. `target_id` đa hình không có FK: writer phải kiểm tra target tồn tại trong transaction, bảng nghiệp vụ không hard-delete; test orphan audit. Không tuyên bố PostgreSQL đảm bảo FK đa hình hoặc chống chỉnh sửa bởi DB superuser. Actor guest FK RESTRICT khiến session có audit phải giữ, chỉ thu hồi thay xóa.
 
@@ -261,7 +259,7 @@ Index `(target_type,target_id,occurred_at,id)`, `(correlation_id)`, `(action,occ
 
 Hai unique partial: `(actor_staff_id,key) WHERE actor_staff_id IS NOT NULL` và `(actor_guest_session_id,key) WHERE actor_guest_session_id IS NOT NULL`. **Key không được tái sử dụng cho route/method khác trong cùng principal**, thay vì dùng route trong unique rồi vô tình chấp nhận cùng key ở endpoint khác. Replay kiểm hash/method/route; mismatch →409. Không cột IN_PROGRESS: lấy transaction advisory lock theo principal+key trước khi đọc record, thực hiện mutation rồi INSERT record đầy đủ response trong cùng transaction. Request cạnh tranh chờ khóa; UNIQUE là lớp bảo vệ bổ sung, rollback không để record rác. Không INSERT placeholder thiếu cột NOT NULL.
 
-Sau 24h trả 410 `IDEMPOTENCY_REPLAY_EXPIRED` và tra tài nguyên, không thực hiện lại; giữ tombstone key/hash/actor/route tối thiểu suốt đời dữ liệu liên quan trong MVP. Cleanup chỉ xóa ciphertext/key_id; không xóa record để key cũ thành request mới. Response mở lượt chứa join code được mã hóa, không lưu plaintext. Login/join không persist response cookie ở bảng này. Auth/ownership kiểm trước replay, token bị thu hồi không lấy lại dữ liệu cũ.
+Sau 24h trả 410 `IDEMPOTENCY_REPLAY_EXPIRED` và tra tài nguyên, không thực hiện lại; giữ tombstone key/hash/actor/route tối thiểu suốt đời dữ liệu liên quan trong MVP. Cleanup chỉ xóa ciphertext/key_id; không xóa record để key cũ thành request mới. Response nghiệp vụ được mã hóa; mở lượt hiện không trả mã tham gia. Login/join không persist response cookie ở bảng này. Auth/ownership kiểm trước replay, token bị thu hồi không lấy lại dữ liệu cũ.
 
 ### 3.16. `__EFMigrationsHistory` — bảng công cụ EF
 
@@ -324,7 +322,7 @@ Theo [PostgreSQL constraints](https://www.postgresql.org/docs/16/ddl-constraints
 | Một lượt mở/bàn, một order/visit, một payment/order | Partial UNIQUE / UNIQUE / FK trong DB |
 | Mỗi visit luôn có đúng một DINE_IN order; OPEN iff order SERVING/AWAITING_PAYMENT; CLOSED iff PAID; CANCELLED iff CANCELLED | DEFERRABLE INITIALLY DEFERRED constraint triggers trên visits và orders, kiểm ở commit; cho phép tạo/đóng hai thực thể trong cùng transaction |
 | Bàn active, party_size ≤ capacity lúc mở; không đổi code/active/capacity vi phạm lượt đang mở | Service khóa table; BEFORE trigger trên table/visit kiểm dữ liệu hiện tại, không cho chuyển visit sang table khác |
-| Guest submit đúng visit và generation đang mở | Auth + use case; insert batch trigger kiểm guest.visit_id = order.visit_id; khách hết hạn chặn ở server |
+| Guest submit đúng visit đang mở | Auth + use case; insert batch trigger kiểm guest.visit_id = order.visit_id; khách hết hạn chặn ở server |
 | Sequence đầu tự duyệt, các đợt sau cần reviewer, các dòng đúng trạng thái batch | CHECK các cột cùng row; deferred trigger batch/items kiểm sự tương thích ở commit, số dòng 1..50; sequence tạo sau khi khóa order |
 | Quyền tự duyệt theo xác nhận2B | Service và batch trigger: khi reviewer=submitter cần MANAGER/ADMIN tại thời điểm review; KITCHEN không được tự duyệt |
 | State item/order/batch không nhảy bước và snapshot bất biến | BEFORE UPDATE triggers so OLD/NEW + service state machine; quyền người dùng vẫn server policy, không giả vờ DB biết role từ cookie |

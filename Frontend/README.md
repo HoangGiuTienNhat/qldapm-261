@@ -9,3 +9,5 @@
 - [SSOT nghiệp vụ](../SSOT/README.md).
 
 Run tại repo root: `docker compose up -d --build`, mở `http://localhost:3000`; F12 → Ctrl+Shift+M để xem mobile/tablet. Browser gọi API cùng origin qua Caddy, không DB trực tiếp. CSS responsive riêng, chưa thêm Tailwind/TanStack/Zod theo [ADR-0008](../ADR/0008-mvp-local-va-quyet-dinh-trien-khai.md). Nhiều tab cùng profile chia sẻ staff cookie; dùng profile/ẩn danh riêng cho nhiều role. Khách có header X-Actor:guest để chọn cookie khách khi cùng giữ cookie staff.
+
+QR cố định: `TableQrDialog.tsx`, qrcode1.5.4 render PNG cục bộ; `copy-table-url.ts` có3 unit tests. Chạy `docker build --target tests -t restaurant-ordering-frontend-tests ./Frontend`. QR page tự join bằng token, không mã nhập. [Hướng dẫn](../GUIDE/QR-TAI-BAN.md).

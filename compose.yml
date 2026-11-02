@@ -22,7 +22,6 @@ services:
     environment: &backend-env
       ConnectionStrings__Database: Host=postgres;Database=${POSTGRES_DB:-restaurant};Username=${POSTGRES_USER:-restaurant};Password=${POSTGRES_PASSWORD:-local-demo-postgres-change-me}
       Demo__Password: ${DEMO_PASSWORD:-RestaurantDemo!2026}
-      Security__JoinSecret: ${JOIN_SECRET:-local-only-join-secret-change-before-deploying}
       ASPNETCORE_URLS: http://+:8080
       PublicOrigin: http://localhost:${PORT:-3000}
     depends_on:

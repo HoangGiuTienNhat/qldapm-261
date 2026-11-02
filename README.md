@@ -26,8 +26,8 @@ Mở **[http://localhost:3000](http://localhost:3000)**. Compose chờ DB, tự 
 
 Có thể copy `.env.example` thành `.env` trước seed đầu để đổi cấu hình. Seed chạy lại **không reset** tài khoản/giá/món đã sửa. Gateway chỉ bind127.0.0.1, DB không publish host port; đây là cấu hình demo local.
 
-1. Admin/waiter mở bàn, ghi mã tham gia8 chữ số. Admin bấm **Link QR** trên bàn để cấp link `/qr/{token}`.
-2. Mở link trong cửa sổ ẩn danh, nhập mã để vào vai khách. Không cần camera hay điện thoại.
+1. Admin/waiter mở lượt trên bàn. Bấm **Xem QR & link** để xem ảnh QR cố định, URL gốc, sao chép hoặc tải PNG.
+2. Mở link trong cửa sổ ẩn danh là vào menu đúng bàn/lượt, không nhập mã. QR dùng lại qua các lượt; chưa mở lượt thì trang báo liên hệ nhân viên. [Hướng dẫn QR](GUIDE/QR-TAI-BAN.md).
 3. Gửi món lần đầu → bếp; gọi thêm → chờ duyệt. Kitchen/manager/admin duyệt. Manager/admin được tự duyệt.
 4. KDS: Tiếp nhận → Bắt đầu nấu → Hoàn thành. Phục vụ: xác nhận Đã phục vụ.
 5. Chi tiết đơn: Yêu cầu thanh toán → cashier xác nhận tiền mặt/chuyển khoản → receipt, đóng lượt, bàn trống.
@@ -45,15 +45,17 @@ Các tab thường cùng profile chia sẻ cookie; muốn nhiều tài khoản s
 ```powershell
 docker build --target tests -t restaurant-ordering-tests ./Backend
 python scripts/smoke.py
+python scripts/qr_smoke.py
 ```
 
 Unit test chạy trong Docker. Smoke dùng Python standard library, không cần pip; tạo dữ liệu demo có thanh toán/hủy, không xóa dữ liệu. [Kết quả HTTP thực tế](docs/verification/smoke-result.json). Để chạy smoke hoàn toàn trong container:
 
 ```powershell
 docker run --rm --network restaurant_ordering_default -e BASE_URL=http://gateway -v "${PWD}:/workspace" -w /workspace python:3.12-alpine python scripts/smoke.py
+python scripts/qr_smoke.py
 ```
 
-Sinh lại docs/collection/OpenAPI khi đổi route: `python scripts/generate_api_docs.py`. Script kiểm catalog khớp53 route thực. Dừng bằng `docker compose stop`, khởi động lại `docker compose start`, cập nhật code bằng `docker compose up -d --build`. Named volumes giữ DB/keyring; không dùng `down -v` nếu muốn giữ dữ liệu.
+Sinh lại docs/collection/OpenAPI khi đổi route: `python scripts/generate_api_docs.py`. Script kiểm catalog khớp53 route thực. Frontend unit test copy URL: `docker build --target tests -t restaurant-ordering-frontend-tests ./Frontend`. Dừng bằng `docker compose stop`, khởi động lại `docker compose start`, cập nhật code bằng `docker compose up -d --build`. Named volumes giữ DB/keyring; không dùng `down -v` nếu muốn giữ dữ liệu.
 
 Backend thực tế: `Restaurant.Api/{Domain,Data,Services}` + `Restaurant.Tests`. Frontend: Next app routes, component UI chung và API helper. Chưa benchmark50 thiết bị/UAT5 người/restore drill; xem ADR-0008 trước khi triển khai ngoài localhost.
 

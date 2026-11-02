@@ -49,10 +49,6 @@
       "value": ""
     },
     {
-      "key": "joinCode",
-      "value": ""
-    },
-    {
       "key": "version",
       "value": "1"
     },
@@ -607,7 +603,7 @@
       }
     },
     {
-      "name": "24 Cấp/xoay link QR",
+      "name": "24 Thay QR cố định khi cần vô hiệu link cũ",
       "request": {
         "method": "POST",
         "header": [
@@ -621,7 +617,7 @@
           }
         ],
         "url": "{{baseUrl}}/api/v1/tables/{{tableId}}/qr/rotate",
-        "description": "Cấp/xoay link QR — MANAGER / ADMIN\nQR token chỉ định danh bàn, không cấp quyền đặt món. Mở qrUrl trong cửa sổ ẩn danh rồi nhập joinCode.",
+        "description": "Thay QR cố định khi cần vô hiệu link cũ — MANAGER / ADMIN\nChỉ thay khi cần vô hiệu QR/link đã in. Muốn xem lại QR hiện tại, dùng GET tables/{id}/qr; không gọi rotate mỗi lần xem. URL đầy đủ dùng PublicOrigin. Thay QR không thu hồi guest session đã tham gia đúng lượt; đóng lượt vẫn thu hồi như cũ.",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"expectedVersion\": {{version}}\n}",
@@ -634,7 +630,25 @@
       }
     },
     {
-      "name": "25 Đọc thông tin QR công khai",
+      "name": "25 Xem lại QR và URL cố định của bàn",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Actor",
+            "value": "{{actor}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/tables/{{tableId}}/qr",
+        "description": "Xem lại QR và URL cố định của bàn — WAITER / MANAGER / ADMIN\nGET chỉ đọc, không đổi token/version. QR dùng lại qua nhiều lượt và restart. UI sinh ảnh QR từ đúng qrUrl này, có ô URL và nút sao chép. Không cần joinCode. PublicOrigin xác định host/port trong link."
+      }
+    },
+    {
+      "name": "26 Đọc thông tin QR công khai",
       "request": {
         "method": "GET",
         "header": [
@@ -652,7 +666,7 @@
       }
     },
     {
-      "name": "26 Mở lượt khách",
+      "name": "27 Mở lượt khách",
       "request": {
         "method": "POST",
         "header": [
@@ -666,7 +680,7 @@
           }
         ],
         "url": "{{baseUrl}}/api/v1/tables/{{tableId}}/visits",
-        "description": "Mở lượt khách — WAITER / MANAGER / ADMIN\npartySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. joinCode trong ví dụ là giả; dùng mã server thật trả về. Retry cùng key trả cùng lượt/mã.",
+        "description": "Mở lượt khách — WAITER / MANAGER / ADMIN\npartySize từ 1 tới sức chứa. Một bàn chỉ một lượt OPEN. Không cần mã tham gia. Retry cùng key trả cùng lượt/order.",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"partySize\": 2\n}",
@@ -679,34 +693,7 @@
       }
     },
     {
-      "name": "27 Cấp lại mã tham gia",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "X-Actor",
-            "value": "{{actor}}"
-          }
-        ],
-        "url": "{{baseUrl}}/api/v1/visits/{{visitId}}/join-code/rotate",
-        "description": "Cấp lại mã tham gia — WAITER / MANAGER / ADMIN\nThu hồi mọi guest session cũ; khách cần nhập mã mới. expectedVersion là version visit, không order.",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"expectedVersion\": {{version}}\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
-      "name": "28 Khách tham gia đúng lượt",
+      "name": "28 Khách tham gia lượt đang mở bằng QR cố định",
       "request": {
         "method": "POST",
         "header": [
@@ -720,10 +707,10 @@
           }
         ],
         "url": "{{baseUrl}}/api/v1/guest/join",
-        "description": "Khách tham gia đúng lượt — Công khai\nLưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 5 lần/phút/IP.",
+        "description": "Khách tham gia lượt đang mở bằng QR cố định — Công khai\nLưu cookie ros_guest. Khi cookie staff cũng có trong Postman, gửi X-Actor: guest cho request khách. Giới hạn 60 lần/phút/IP. Không nhập mã. Bàn chưa mở trả409 TABLE_NOT_OPEN, QR sai/bàn inactive trả404. Gọi lại bằng cùng cookie hợp lệ giữ cùng phiên/lượt; không tạo order mới.",
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"qrToken\": \"{{qrToken}}\",\n  \"joinCode\": \"{{joinCode}}\"\n}",
+          "raw": "{\n  \"qrToken\": \"{{qrToken}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1343,7 +1330,7 @@
           "pm.test('Success or documented business error',()=>pm.expect([200,401,403,404,409,410,422,429]).to.include(pm.response.code));",
           "if(pm.response.code===200){",
           " const d=pm.response.json();",
-          " ['orderId','batchId','visitId','qrToken','joinCode'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});",
+          " ['orderId','batchId','visitId','qrToken'].forEach(k=>{if(d[k])pm.collectionVariables.set(k,d[k]);});",
           " if(d.orderVersion)pm.collectionVariables.set('orderVersion',String(d.orderVersion));",
           " if(d.version)pm.collectionVariables.set('version',String(d.version));",
           " if(d.batches){pm.collectionVariables.set('orderId',d.id);pm.collectionVariables.set('orderVersion',String(d.version));const b=d.batches.at(-1);if(b){pm.collectionVariables.set('batchId',b.id);if(b.items[0]){pm.collectionVariables.set('itemId',b.items[0].id);pm.collectionVariables.set('version',String(b.items[0].version));}}}",

@@ -1,4 +1,5 @@
-using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.DataProtection;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.Api.Domain;
@@ -62,7 +63,8 @@ public partial class ApiService
     }
     public async Task<IResult> TableWrite(Guid? id,JsonObject b)=>await Command(b,async()=>
     {
-        Require("MANAGER","ADMIN");var t=id.HasValue?await Lock<RestaurantTable>("restaurant_tables",id.Value):new RestaurantTable {QrTokenHash=Hash(Token())};
+        Require("MANAGER","ADMIN");var t=id.HasValue?await Lock<RestaurantTable>("restaurant_tables",id.Value):new RestaurantTable();
+        if(!id.HasValue){var raw=Token();t.QrTokenHash=Hash(raw);t.QrTokenCiphertext=qrProtector.Protect(Encoding.UTF8.GetBytes(raw));}
         if(id.HasValue){CheckVersion(t,b);Rules.Require(!await db.Visits.AnyAsync(v=>v.TableId==t.Id&&v.Status=="OPEN"),"TABLE_OCCUPIED","Không sửa bàn đang có khách.");t.Touch();}else db.RestaurantTables.Add(t);
         if(b["code"]!=null || !id.HasValue)t.Code=Text(b,"code",20).ToUpperInvariant();
         if(b["capacity"]!=null || !id.HasValue)t.Capacity=(short)Number(b,"capacity",1,30);
@@ -70,9 +72,20 @@ public partial class ApiService
     },false);
     public async Task<IResult> QrRotate(Guid id,JsonObject b)=>await Command(b,async()=>
     {
-        Require("MANAGER","ADMIN");var t=await Lock<RestaurantTable>("restaurant_tables",id);CheckVersion(t,b);var raw=Token();t.QrTokenHash=Hash(raw);t.Touch();
-        Audit("QR_ROTATED","TABLE",t.Id,null,new {t.Version});return new {t.Id,t.Code,t.Version,qrToken=raw,qrUrl=$"/qr/{raw}"};
+        Require("MANAGER","ADMIN");var t=await Lock<RestaurantTable>("restaurant_tables",id);CheckVersion(t,b);var raw=Token();t.QrTokenHash=Hash(raw);t.QrTokenCiphertext=qrProtector.Protect(Encoding.UTF8.GetBytes(raw));t.Touch();
+        Audit("QR_ROTATED","TABLE",t.Id,null,new {t.Version});return QrInfo(t,raw);
     });
+    private object QrInfo(RestaurantTable t,string raw)
+    {
+        var origin=(config["PublicOrigin"]??"http://localhost:3000").TrimEnd('/');var path=$"/qr/{raw}";
+        return new {t.Id,t.Code,t.Version,qrToken=raw,qrPath=path,qrUrl=origin+path};
+    }
+    public async Task<object> TableQr(Guid id)
+    {
+        Require("WAITER","MANAGER","ADMIN");var t=await db.RestaurantTables.AsNoTracking().SingleOrDefaultAsync(t=>t.Id==id)??throw new ApiException(404,"RESOURCE_NOT_FOUND","Không tìm thấy bàn.");
+        Rules.Require(t.QrTokenCiphertext!=null,"QR_NOT_INITIALIZED","QR chưa được khởi tạo. Hãy chạy migration/seed trước.");
+        return QrInfo(t,Encoding.UTF8.GetString(qrProtector.Unprotect(t.QrTokenCiphertext!)));
+    }
     public async Task<object> QrRead(string token)
     {
         var h=Hash(token);var t=await db.RestaurantTables.AsNoTracking().SingleOrDefaultAsync(t=>t.QrTokenHash==h&&t.IsActive);
@@ -84,26 +97,28 @@ public partial class ApiService
         var a=Require("WAITER","MANAGER","ADMIN");var t=await Lock<RestaurantTable>("restaurant_tables",id);
         Rules.Require(t.IsActive,"TABLE_INACTIVE","Bàn đang tạm ngưng.");Rules.Require(!await db.Visits.AnyAsync(v=>v.TableId==id&&v.Status=="OPEN"),"TABLE_OCCUPIED","Bàn đang có khách.");
         var v=new Visit {TableId=id,TableCodeSnapshot=t.Code,PartySize=(short)Number(b,"partySize",1,t.Capacity),OpenedByStaffId=a.Id};
-        var code=RandomNumberGenerator.GetInt32(10000000,100000000).ToString();v.JoinCodeHmac=JoinHash(v,code);db.Visits.Add(v);
+        db.Visits.Add(v);
         var o=new Order {Code="DH-"+Token()[..12].ToUpperInvariant(),VisitId=v.Id,CreatedByStaffId=a.Id};db.Orders.Add(o);
         Audit("VISIT_OPENED","VISIT",v.Id,null,new {v.TableId,v.PartySize,orderId=o.Id});
-        return new {visitId=v.Id,orderId=o.Id,tableCode=t.Code,joinCode=code,version=v.Version,orderVersion=o.Version};
-    });
-    public async Task<IResult> JoinRotate(Guid id,JsonObject b)=>await Command(b,async()=>
-    {
-        Require("WAITER","MANAGER","ADMIN");var info=await db.Visits.AsNoTracking().SingleOrDefaultAsync(v=>v.Id==id)??throw new ApiException(404,"RESOURCE_NOT_FOUND","Không tìm thấy lượt.");
-        await Lock<RestaurantTable>("restaurant_tables",info.TableId);var v=await Lock<Visit>("visits",id);CheckVersion(v,b);Rules.Require(v.Status=="OPEN","INVALID_TRANSITION","Lượt đã đóng.");
-        var code=RandomNumberGenerator.GetInt32(10000000,100000000).ToString();v.JoinGeneration++;v.JoinCodeHmac=JoinHash(v,code);v.Touch();
-        await db.GuestSessions.Where(s=>s.VisitId==id&&s.RevokedAt==null).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.RevokedAt,DateTimeOffset.UtcNow));
-        Audit("JOIN_CODE_ROTATED","VISIT",id,null,new {v.JoinGeneration});return new {visitId=id,joinCode=code,v.Version};
+        return new {visitId=v.Id,orderId=o.Id,tableCode=t.Code,version=v.Version,orderVersion=o.Version};
     });
     public async Task<object> Join(JsonObject b)
     {
-        var h=Hash(Text(b,"qrToken",128));var t=await db.RestaurantTables.SingleOrDefaultAsync(t=>t.QrTokenHash==h&&t.IsActive);
-        var v=t==null?null:await db.Visits.SingleOrDefaultAsync(v=>v.TableId==t.Id&&v.Status=="OPEN");
-        Rules.Require(v!=null&&CryptographicOperations.FixedTimeEquals(v.JoinCodeHmac,JoinHash(v,Text(b,"joinCode",8))),"UNAUTHENTICATED","Mã tham gia không đúng hoặc lượt đã kết thúc.",401);
-        var token=Token();var s=new GuestSession {VisitId=v!.Id,JoinGeneration=v.JoinGeneration,TokenHash=Hash(token),ExpiresAt=DateTimeOffset.UtcNow.AddHours(12)};db.GuestSessions.Add(s);
-        await db.SaveChangesAsync();Cookie("ros_guest",token,12);var order=await db.Orders.SingleAsync(o=>o.VisitId==v.Id);
+        var h=Hash(Text(b,"qrToken",128));var info=await db.RestaurantTables.AsNoTracking().SingleOrDefaultAsync(t=>t.QrTokenHash==h&&t.IsActive);
+        Rules.Require(info!=null,"RESOURCE_NOT_FOUND","QR không hợp lệ hoặc bàn đang tạm ngưng.",404);
+        await using var tx=await db.Database.BeginTransactionAsync();var t=await Lock<RestaurantTable>("restaurant_tables",info!.Id);
+        Rules.Require(t.IsActive&&t.QrTokenHash.SequenceEqual(h),"RESOURCE_NOT_FOUND","QR đã thay đổi hoặc bàn đang tạm ngưng.",404);
+        var v=await db.Visits.SingleOrDefaultAsync(v=>v.TableId==t.Id&&v.Status=="OPEN");
+        Rules.Require(v!=null,"TABLE_NOT_OPEN","Bàn chưa có lượt khách đang mở. Vui lòng liên hệ nhân viên.");
+        await Lock<Visit>("visits",v!.Id);var order=await db.Orders.SingleAsync(o=>o.VisitId==v.Id);
+        if(Http.Request.Cookies.TryGetValue("ros_guest",out var previousToken))
+        {
+            var previousHash=Hash(previousToken);var now=DateTimeOffset.UtcNow;
+            if(await db.GuestSessions.AnyAsync(s=>s.VisitId==v.Id&&s.TokenHash==previousHash&&s.RevokedAt==null&&s.ExpiresAt>now))
+            {await tx.CommitAsync();return new {visitId=v.Id,orderId=order.Id,tableCode=v.TableCodeSnapshot};}
+        }
+        var token=Token();var s=new GuestSession {VisitId=v.Id,TokenHash=Hash(token),ExpiresAt=DateTimeOffset.UtcNow.AddHours(12)};db.GuestSessions.Add(s);
+        await db.SaveChangesAsync();await tx.CommitAsync();Cookie("ros_guest",token,12);
         return new {visitId=v.Id,orderId=order.Id,tableCode=v.TableCodeSnapshot};
     }
     public async Task<object> GuestCurrent()

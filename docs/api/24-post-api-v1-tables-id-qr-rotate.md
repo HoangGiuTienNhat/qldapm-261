@@ -1,6 +1,6 @@
 # POST /api/v1/tables/{id}/qr/rotate
 
-Cấp/xoay link QR. **Quyền:** MANAGER / ADMIN.
+Thay QR cố định khi cần vô hiệu link cũ. **Quyền:** MANAGER / ADMIN.
 
 Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](../../SSOT/P1.3-ban-va-luot-khach.md) sở hữu. Các chuỗi `<...>` trong response là giá trị minh họa cần thay bằng dữ liệu server thật.
 
@@ -31,11 +31,12 @@ Hợp đồng test của endpoint đã implement; nghiệp vụ do [SSOT P1.3](.
   "code": "B01",
   "version": 2,
   "qrToken": "<token thực server sinh>",
-  "qrUrl": "/qr/<token>"
+  "qrPath": "/qr/<token>",
+  "qrUrl": "http://localhost:3000/qr/<token>"
 }
 ```
 
-QR token chỉ định danh bàn, không cấp quyền đặt món. Mở qrUrl trong cửa sổ ẩn danh rồi nhập joinCode.
+Chỉ thay khi cần vô hiệu QR/link đã in. Muốn xem lại QR hiện tại, dùng GET tables/{id}/qr; không gọi rotate mỗi lần xem. URL đầy đủ dùng PublicOrigin. Thay QR không thu hồi guest session đã tham gia đúng lượt; đóng lượt vẫn thu hồi như cũ.
 
 ## Cách thử và lỗi cần kiểm tra
 

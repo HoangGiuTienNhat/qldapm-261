@@ -1,5 +1,7 @@
 # ADR-0007 — Nguồn, truy vết và xác nhận nghiệp vụ
 
+> Thay đổi QR hiện hành03/11/2026: [ADR-0009](0009-qr-co-dinh-tai-ban.md) thay mã tham gia bằng QR cố định. Những đoạn mô tả joinCode/HMAC/QR chỉ có link bên dưới là lịch sử quyết định trước; xem P1.3 và API docs cho hành vi mới.
+
 > Cập nhật triển khai02/11/2026: bản MVP localhost đã chạy. [ADR-0008](0008-mvp-local-va-quyet-dinh-trien-khai.md) thay thế các lựa chọn/giới hạn khác biệt bên dưới; [API thực thi](../docs/api/README.md) và [trạng thái](../docs/IMPLEMENTATION-STATUS.md) là bằng chứng hiện tại. Phần ghi chưa triển khai ở nội dung gốc mô tả thời điểm thiết kế ban đầu.
 
 Ngày 02/11/2026 · Hồ sơ baseline. Đã đọc **toàn bộ 5 file Markdown** hiện có trong `temp-docs/`, không chỉ báo cáo tổng hợp. Không truy cập các Google Docs/Sheets/Monday được dẫn bên trong vì thông tin cần thiết đã có trong bản nguồn local; không tuyên bố đã đọc nội dung các liên kết ngoài đó.
@@ -35,6 +37,8 @@ Khi có yêu cầu mới được chấp thuận, đưa vào đúng SSOT; mục 
 | C04 | Thanh toán ghi chung, có nhắc giảm giá nếu có | **Tiền mặt/chuyển khoản thủ công, chưa giảm giá/VAT tách riêng** | P1.7 |
 
 Admin được các quyền nghiệp vụ tương ứng của manager theo baseline RBAC; không phải tài khoản khách hàng thực tế mang tên giảng viên. ADMIN không được bỏ qua ràng buộc/audit.
+
+Xác nhận mới nhất: chủ dự án chọn QR cố định có ảnh, link gốc và sao chép; không nhập mã, không tự mở lượt. Quyết định này supersedes C02 trước đó; xem ADR-0009/P1.3.
 
 ## 4. Giả định/đề xuất thiết kế cần review khi R01
 

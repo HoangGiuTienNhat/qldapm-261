@@ -6,6 +6,7 @@ Thư mục này là nơi tập trung hướng dẫn vận hành, phát triển v
 |---|---|
 | Chạy Docker lần đầu, chạy các lần sau, dừng và dựng lại | [DOCKER.md](DOCKER.md) |
 | Môi trường hoàn toàn mới nhưng giữ dữ liệu và image cũ | [DOCKER.md — môi trường sạch](DOCKER.md#7-chạy-môi-trường-mới-hoàn-toàn-mà-không-xóa-dữ-liệu-cũ) |
+| Dùng ảnh QR cố định, link bàn và vai khách | [QR-TAI-BAN.md](QR-TAI-BAN.md) |
 | Thử API bằng Postman | [Postman](../docs/api/POSTMAN.md) và [từng endpoint](../docs/api/README.md) |
 | Tìm luồng chức năng và các giới hạn bản hiện tại | [README](../README.md), [trạng thái triển khai](../docs/IMPLEMENTATION-STATUS.md) |
 
