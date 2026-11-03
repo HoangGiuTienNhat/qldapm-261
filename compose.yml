@@ -2,6 +2,8 @@ name: restaurant_ordering
 services:
   postgres:
     image: postgres:16-alpine
+    ports:
+      - "5433:5432"
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-restaurant}
